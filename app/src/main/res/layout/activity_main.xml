@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/barLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary" />
+    </android.support.design.widget.AppBarLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="如果是透明的你应该能看到我" />
+
+    <com.xiuyukeji.pictureplayerview.PicturePlayerView
+        android:id="@+id/player"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:opaque="false"
+        app:source="assets" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:layout_marginRight="@dimen/fab_margin"
+        app:srcCompat="@android:drawable/ic_media_play" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:layout_marginRight="@dimen/fab_margin"
+        android:layout_toLeftOf="@id/start"
+        app:srcCompat="@android:drawable/ic_media_pause" />
+</RelativeLayout>
