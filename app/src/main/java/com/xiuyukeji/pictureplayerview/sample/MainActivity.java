@@ -12,6 +12,8 @@ import android.view.View;
 import com.xiuyukeji.pictureplayerview.PicturePlayerView;
 import com.xiuyukeji.pictureplayerview.sample.step1.Step1Activity;
 import com.xiuyukeji.pictureplayerview.sample.step2.Step2Activity;
+import com.xiuyukeji.pictureplayerview.sample.step3.Step3Activity;
+import com.xiuyukeji.pictureplayerview.sample.utils.PictureInfoUtil;
 
 /**
  * 完整演示
@@ -70,8 +72,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.clear();
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        menu.removeItem(ACTION_USE_OPAQUE);
+        menu.removeItem(ACTION_USE_TRANSPARENT);
+
         if (mPicturePlayer.isPlaying()) {
             return true;
         }
@@ -80,6 +83,12 @@ public class MainActivity extends AppCompatActivity {
         } else {
             menu.add(1, ACTION_USE_TRANSPARENT, 100, R.string.action_use_transparent);
         }
+        return true;
+    }
+
+    @Override
+    public boolean onCreatePanelMenu(int featureId, Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -93,6 +102,9 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_step2:
                 startActivity(new Intent(this, Step2Activity.class));
+                return true;
+            case R.id.action_step3:
+                startActivity(new Intent(this, Step3Activity.class));
                 return true;
             case ACTION_USE_OPAQUE:
                 PictureInfoUtil.get().setType(PictureInfoUtil.OPAQUE);

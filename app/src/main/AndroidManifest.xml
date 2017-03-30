@@ -27,6 +27,10 @@
             android:name=".step2.Step2Activity"
             android:label="@string/action_step2"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".step3.Step3Activity"
+            android:label="@string/action_step3"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

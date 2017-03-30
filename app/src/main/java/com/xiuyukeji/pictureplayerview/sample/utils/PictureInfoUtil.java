@@ -1,4 +1,4 @@
-package com.xiuyukeji.pictureplayerview.sample;
+package com.xiuyukeji.pictureplayerview.sample.utils;
 
 import android.support.annotation.IntDef;
 

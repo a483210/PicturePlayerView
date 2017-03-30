@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="如果是透明的你应该能看到我" />
+        android:text="@string/back_text" />
 
     <com.xiuyukeji.pictureplayerview.sample.step2.PicturePlayerView2
         android:id="@+id/player"
@@ -37,4 +37,11 @@
         android:layout_alignParentRight="true"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@android:drawable/ic_media_play" />
+
+    <TextView
+        android:id="@+id/fps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/barLayout"
+        android:layout_margin="@dimen/fab_margin" />
 </RelativeLayout>

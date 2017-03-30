@@ -12,4 +12,9 @@
         android:orderInCategory="100"
         android:title="@string/action_step2"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_step3"
+        android:orderInCategory="100"
+        android:title="@string/action_step3"
+        app:showAsAction="never" />
 </menu>

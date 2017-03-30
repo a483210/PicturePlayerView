@@ -21,11 +21,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
- * 播放核心
+ * 播放实现
  *
  * @author Created by jz on 2017/3/26 16:55
  */
-class PlayerCore {
+class PicturePlayer {
 
     public static final int FILE = 0, ASSETS = 1;
 
@@ -62,7 +62,7 @@ class PlayerCore {
     private TextureView mTextureView;
     private NoticeHandler mNoticeHandler;
 
-    PlayerCore(boolean isAntiAlias, int source, int scaleType, TextureView textureView, NoticeHandler noticeHandler) {
+    PicturePlayer(boolean isAntiAlias, int source, int scaleType, TextureView textureView, NoticeHandler noticeHandler) {
         this.mSource = source;
         this.mScaleType = scaleType;
         this.mTextureView = textureView;
@@ -72,6 +72,7 @@ class PlayerCore {
         if (isAntiAlias) {
             mPaint.setAntiAlias(true);
             mPaint.setDither(true);
+            mPaint.setFilterBitmap(true);
         }
 
         mCacheBitmaps = new Bitmap[MAX_CACHE_NUMBER];

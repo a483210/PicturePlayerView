@@ -11,7 +11,8 @@ import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.view.TextureView;
+
+import com.xiuyukeji.pictureplayerview.sample.BasePicturePlayerView;
 
 import java.io.IOException;
 
@@ -20,7 +21,7 @@ import java.io.IOException;
  *
  * @author Created by jz on 2017/3/29 17:49
  */
-public class PicturePlayerView1 extends TextureView implements TextureView.SurfaceTextureListener {
+public class PicturePlayerView1 extends BasePicturePlayerView {
 
     private Paint mPaint;//画笔
 
@@ -49,29 +50,18 @@ public class PicturePlayerView1 extends TextureView implements TextureView.Surfa
 
         setSurfaceTextureListener(this);//设置监听
 
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);//创建画笔
+        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.FILTER_BITMAP_FLAG);//创建画笔
     }
 
     //... 省略SurfaceTextureListener的方法
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-    }
-
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-    }
-
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
         mPlayFrame = mFrameCount;
         return false;
     }
 
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-    }
-
     //开始播放
+    @Override
     public void start(String[] paths, long duration) {
         this.mPaths = paths;
         this.mFrameCount = paths.length;

@@ -23,7 +23,7 @@
         android:layout_centerInParent="true"
         android:text="@string/back_text" />
 
-    <com.xiuyukeji.pictureplayerview.sample.step1.PicturePlayerView1
+    <com.xiuyukeji.pictureplayerview.sample.step3.PicturePlayerView3
         android:id="@+id/player"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

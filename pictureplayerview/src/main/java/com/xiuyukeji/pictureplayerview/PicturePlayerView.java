@@ -33,7 +33,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     private int mSource;//设置来源
     private int mScaleType;//设置缩放类型
 
-    private PlayerCore mPlayerCore;
+    private PicturePlayer mPlayerCore;
 
     private int mState = STOP;
     private boolean mIsRelease = false;
@@ -69,15 +69,15 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         mIsLoop = typedArray.getBoolean(R.styleable.PicturePlayerView_loop, false);
         mIsOpaque = typedArray.getBoolean(R.styleable.PicturePlayerView_opaque, true);
         mIsAntiAlias = typedArray.getBoolean(R.styleable.PicturePlayerView_antiAlias, true);
-        mSource = typedArray.getInt(R.styleable.PicturePlayerView_source, PlayerCore.FILE);
-        mScaleType = typedArray.getInt(R.styleable.PicturePlayerView_scaleType, PlayerCore.FIT_WIDTH);
+        mSource = typedArray.getInt(R.styleable.PicturePlayerView_source, PicturePlayer.FILE);
+        mScaleType = typedArray.getInt(R.styleable.PicturePlayerView_scaleType, PicturePlayer.FIT_WIDTH);
         typedArray.recycle();
     }
 
     private void findView() {
         mNoticeHandler = new NoticeHandler();
 
-        mPlayerCore = new PlayerCore(mIsAntiAlias, mSource, mScaleType, this, mNoticeHandler);
+        mPlayerCore = new PicturePlayer(mIsAntiAlias, mSource, mScaleType, this, mNoticeHandler);
     }
 
     private void initView() {
