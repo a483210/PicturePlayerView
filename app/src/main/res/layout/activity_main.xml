@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="如果是透明的你应该能看到我" />
+        android:text="@string/back_text" />
 
     <com.xiuyukeji.pictureplayerview.PicturePlayerView
         android:id="@+id/player"
@@ -48,5 +48,15 @@
         android:layout_marginBottom="@dimen/fab_margin"
         android:layout_marginRight="@dimen/fab_margin"
         android:layout_toLeftOf="@id/start"
+        app:srcCompat="@android:drawable/ic_media_pause" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/pause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:layout_marginRight="@dimen/fab_margin"
+        android:layout_toLeftOf="@id/stop"
         app:srcCompat="@android:drawable/ic_media_pause" />
 </RelativeLayout>

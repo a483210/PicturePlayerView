@@ -25,16 +25,19 @@ class NoticeHandler extends Handler {
         super.handleMessage(msg);
         switch (msg.what) {
             case UPDATE:
-                if (mOnUpdateListener != null)
+                if (mOnUpdateListener != null) {
                     mOnUpdateListener.onUpdate(msg.arg1);
+                }
                 break;
             case STOP:
-                if (mOnStopListener != null)
+                if (mOnStopListener != null) {
                     mOnStopListener.onStop();
+                }
                 break;
             case ERROR:
-                if (mOnErrorListener != null)
+                if (mOnErrorListener != null) {
                     mOnErrorListener.onError(String.valueOf(msg.obj));
+                }
                 break;
         }
     }

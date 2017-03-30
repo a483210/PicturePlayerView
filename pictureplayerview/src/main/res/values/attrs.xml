@@ -14,5 +14,6 @@
             <enum name="fitCenter" value="2" />
             <enum name="fitCrop" value="3" />
         </attr>
+        <attr name="cacheFrameNumber" format="integer" />
     </declare-styleable>
 </resources>

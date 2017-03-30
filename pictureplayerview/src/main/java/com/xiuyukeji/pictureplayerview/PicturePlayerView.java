@@ -25,13 +25,14 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
 
     protected static final String TAG = "PicturePlayerView";
 
-    private static final int STOP = 0, START = 1, STOPPING = 2;
+    private static final int STOP = 0, START = 1, PAUSE = 2, STOPPING = 3;
 
     private boolean mIsLoop;//是否循环播放
     private boolean mIsOpaque;//背景是否透明
     private boolean mIsAntiAlias;//是否抗锯齿
     private int mSource;//设置来源
     private int mScaleType;//设置缩放类型
+    private int mCacheFrameNumber;//缓存帧数
 
     private PicturePlayer mPlayerCore;
 
@@ -63,21 +64,23 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     }
 
     private void initAttrs(AttributeSet attrs) {
-        if (attrs == null)
+        if (attrs == null) {
             return;
+        }
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.PicturePlayerView);
         mIsLoop = typedArray.getBoolean(R.styleable.PicturePlayerView_loop, false);
         mIsOpaque = typedArray.getBoolean(R.styleable.PicturePlayerView_opaque, true);
         mIsAntiAlias = typedArray.getBoolean(R.styleable.PicturePlayerView_antiAlias, true);
         mSource = typedArray.getInt(R.styleable.PicturePlayerView_source, PicturePlayer.FILE);
         mScaleType = typedArray.getInt(R.styleable.PicturePlayerView_scaleType, PicturePlayer.FIT_WIDTH);
+        mCacheFrameNumber = typedArray.getInt(R.styleable.PicturePlayerView_cacheFrameNumber, PicturePlayer.MAX_CACHE_NUMBER);
         typedArray.recycle();
     }
 
     private void findView() {
         mNoticeHandler = new NoticeHandler();
 
-        mPlayerCore = new PicturePlayer(mIsAntiAlias, mSource, mScaleType, this, mNoticeHandler);
+        mPlayerCore = new PicturePlayer(mIsAntiAlias, mSource, mScaleType, mCacheFrameNumber, this, mNoticeHandler);
     }
 
     private void initView() {
@@ -125,8 +128,9 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     public void setDataSource(String path, String[] names, long duration) {
         int count = names.length;
         String[] paths = new String[names.length];
-        for (int i = 0; i < count; i++)
-            paths[i] = path + "/" + names[i];
+        for (int i = 0; i < count; i++) {
+            paths[i] = String.format("%s/%s", path, names[i]);
+        }
         setDataSource(paths, duration);
     }
 
@@ -147,10 +151,12 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
      * 开始播放
      */
     public void start() {
-        if (!mIsEnabled)
+        if (!mIsEnabled) {
             return;
-        if (mState == START)
+        }
+        if (mState == START) {
             return;
+        }
         if (mState == STOPPING) {
             mIsWaitPlay = true;
             return;
@@ -162,6 +168,32 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     }
 
     /**
+     * 恢复播放
+     */
+    public void resume() {
+        if (mState != PAUSE || !mPlayerCore.isStarted()) {
+            return;
+        }
+
+        if (mPlayerCore.resume()) {
+            mState = START;
+        }
+    }
+
+    /**
+     * 暂停播放
+     */
+    public void pause() {
+        if (mState != START || !mPlayerCore.isStarted()) {
+            return;
+        }
+
+        if (mPlayerCore.pause()) {
+            mState = PAUSE;
+        }
+    }
+
+    /**
      * 停止播放
      */
     public void stop() {
@@ -169,7 +201,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
             return;
         }
 
-        cancel();
+        mPlayerCore.cancel();
 
         mState = STOPPING;
     }
@@ -193,10 +225,6 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
      */
     public void setLoop(boolean isLoop) {
         this.mIsLoop = isLoop;
-    }
-
-    private void cancel() {
-        mPlayerCore.cancel();
     }
 
     /**
@@ -246,6 +274,10 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         }
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         unlockCanvasAndPost(canvas);
+    }
+
+    public boolean isPaused() {
+        return mState == PAUSE;
     }
 
     public boolean isPlaying() {

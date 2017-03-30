@@ -27,7 +27,8 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar mToolbar;
     private FloatingActionButton mStartFab;
     private FloatingActionButton mStopFab;
-    private PicturePlayerView mPicturePlayer;
+    private FloatingActionButton mPauseFab;
+    private PicturePlayerView mPicturePlayerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mStartFab = (FloatingActionButton) findViewById(R.id.start);
         mStopFab = (FloatingActionButton) findViewById(R.id.stop);
-        mPicturePlayer = (PicturePlayerView) findViewById(R.id.player);
+        mPauseFab = (FloatingActionButton) findViewById(R.id.pause);
+        mPicturePlayerView = (PicturePlayerView) findViewById(R.id.player);
     }
 
     private void initView() {
@@ -54,19 +56,29 @@ public class MainActivity extends AppCompatActivity {
         mStartFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mPicturePlayer.start();
+                if (mPicturePlayerView.isPlaying()) {
+                    mPicturePlayerView.resume();
+                } else {
+                    mPicturePlayerView.start();
+                }
             }
         });
         mStopFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mPicturePlayer.stop();
+                mPicturePlayerView.stop();
+            }
+        });
+        mPauseFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPicturePlayerView.pause();
             }
         });
     }
 
     private void resetDataSource() {
-        mPicturePlayer.setDataSource(PictureInfoUtil.get().getPaths(),
+        mPicturePlayerView.setDataSource(PictureInfoUtil.get().getPaths(),
                 PictureInfoUtil.get().getDuration());
     }
 
@@ -75,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         menu.removeItem(ACTION_USE_OPAQUE);
         menu.removeItem(ACTION_USE_TRANSPARENT);
 
-        if (mPicturePlayer.isPlaying()) {
+        if (mPicturePlayerView.isPlaying()) {
             return true;
         }
         if (PictureInfoUtil.get().getType() == PictureInfoUtil.TRANSPARENT) {

@@ -56,8 +56,9 @@ public class PicturePlayerView2 extends BasePicturePlayerView {
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-        if (mScheduler != null && mScheduler.isRunning())
+        if (mScheduler != null && mScheduler.isStarted()) {
             mScheduler.stop();
+        }
         return false;
     }
 
@@ -99,7 +100,8 @@ public class PicturePlayerView2 extends BasePicturePlayerView {
     }
 
     private static void recycleBitmap(Bitmap bitmap) {
-        if (bitmap != null && !bitmap.isRecycled())
+        if (bitmap != null && !bitmap.isRecycled()) {
             bitmap.recycle();
+        }
     }
 }

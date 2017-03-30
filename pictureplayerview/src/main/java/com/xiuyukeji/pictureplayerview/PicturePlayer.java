@@ -31,11 +31,20 @@ class PicturePlayer {
 
     public static final int FIT_WIDTH = 0, FIT_HEIGHT = 1, FIT_CENTER = 2, FIT_CROP = 3;
 
-    private static final int MAX_CACHE_NUMBER = 6;
-    private static final int MAX_REUSABLE_NUMBER = MAX_CACHE_NUMBER + 4;
+    public static final int MAX_CACHE_NUMBER = 12;
 
-    private Bitmap[] mCacheBitmaps;
+    private Paint mPaint;
+
+    private int mSource;//设置来源
+    private int mScaleType;//设置缩放类型
+    private final int mCacheFrameNumber;//最大缓存帧数
+    private final int mReusableFrameNumber;//最大复用缓存帧数
+
+    private TextureView mTextureView;
+    private NoticeHandler mNoticeHandler;
+
     private int mCacheCount;
+    private Bitmap[] mCacheBitmaps;
     private ArrayList<Bitmap> mReusableBitmaps;
 
     private int mReadIndex;
@@ -47,11 +56,6 @@ class PicturePlayer {
     private boolean mIsPlayCancel;
     private boolean mIsCancel;
 
-    private Paint mPaint;
-
-    private int mSource;//设置来源
-    private int mScaleType;//设置缩放类型
-
     private String[] mPaths;
     private long mDuration;
     private int mFrameCount;
@@ -59,12 +63,11 @@ class PicturePlayer {
     private ReadThread mReadThread;
     private Scheduler mScheduler;
 
-    private TextureView mTextureView;
-    private NoticeHandler mNoticeHandler;
-
-    PicturePlayer(boolean isAntiAlias, int source, int scaleType, TextureView textureView, NoticeHandler noticeHandler) {
+    PicturePlayer(boolean isAntiAlias, int source, int scaleType, int cacheFrameNumber, TextureView textureView, NoticeHandler noticeHandler) {
         this.mSource = source;
         this.mScaleType = scaleType;
+        this.mCacheFrameNumber = cacheFrameNumber;
+        this.mReusableFrameNumber = mCacheFrameNumber + mCacheFrameNumber / 2;
         this.mTextureView = textureView;
         this.mNoticeHandler = noticeHandler;
 
@@ -75,7 +78,7 @@ class PicturePlayer {
             mPaint.setFilterBitmap(true);
         }
 
-        mCacheBitmaps = new Bitmap[MAX_CACHE_NUMBER];
+        mCacheBitmaps = new Bitmap[mCacheFrameNumber];
         mReusableBitmaps = new ArrayList<>();
     }
 
@@ -93,10 +96,18 @@ class PicturePlayer {
         mReadThread.start();
     }
 
+    boolean pause() {
+        return mScheduler.pause();
+    }
+
+    boolean resume() {
+        return mScheduler.resume();
+    }
+
     void cancel() {
         mIsCancel = true;
         mReadThread.interrupt();
-        if (mScheduler.isRunning()) {
+        if (mScheduler.isStarted()) {
             mScheduler.stop();
         }
     }
@@ -105,31 +116,45 @@ class PicturePlayer {
         this.mScaleType = scaleType;
     }
 
+    boolean isStarted() {
+        return mScheduler != null && mScheduler.isStarted();
+    }
+
+    boolean isRunning() {
+        return mScheduler != null && mScheduler.isRunning();
+    }
+
+    boolean isPaused() {
+        return mScheduler != null && mScheduler.isPaused();
+    }
+
     private class ReadThread extends Thread {
         @Override
         public void run() {
             try {
-                while (!mIsCancel && mReadFrame < mFrameCount) {
-                    if (mCacheCount >= MAX_CACHE_NUMBER) {
+                while (!mIsCancel && mReadFrame < mFrameCount && !mIsPlayCancel) {
+                    if (mCacheCount >= mCacheFrameNumber) {
                         SystemClock.sleep(1);
                         continue;
                     }
 
                     Bitmap bmp = readBitmap(mPaths[mReadFrame]);
 
-                    if (bmp == null || bmp.isRecycled())
+                    if (bmp == null || bmp.isRecycled()) {
                         throw new NullPointerException("读取的图片有错误");
+                    }
 
                     mCacheBitmaps[mReadIndex++] = bmp;
 
-                    if (mReadIndex >= MAX_CACHE_NUMBER) {
+                    if (mReadIndex >= mCacheFrameNumber) {
                         mReadIndex = 0;
                     }
                     mReadFrame++;
                     mCacheCount++;
 
-                    if (mReadFrame == 1)
+                    if (mReadFrame == 1) {
                         mScheduler.start();
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -183,7 +208,7 @@ class PicturePlayer {
                 return mReusableBitmaps.remove(i);
             }
         }
-        for (int i = MAX_REUSABLE_NUMBER; i < count; i++) {
+        for (int i = mReusableFrameNumber; i < count; i++) {
             ImageCache.recycleBitmap(mReusableBitmaps.remove(0));
         }
         return null;
@@ -200,8 +225,21 @@ class PicturePlayer {
 
         @Override
         public void onFrameUpdate(long frameIndex) {
-            if (mCacheCount <= 0
-                    || frameIndex >= mReadFrame) {
+            update(frameIndex);
+            if (mCacheCount <= 0) {
+                return;
+            } else if (frameIndex >= mReadFrame) {
+                for (int i = 0; i < mCacheCount; i++) {
+                    Bitmap bitmap = mCacheBitmaps[i];
+                    if (bitmap != null) {
+                        mReusableBitmaps.add(bitmap);
+                    }
+                    mCacheBitmaps[i] = null;
+                }
+                mReadFrame = (int) (frameIndex + 1);
+                mReadIndex = 0;
+                mCacheCount = 0;
+                mPlayIndex = 0;
                 return;
             }
 
@@ -250,17 +288,19 @@ class PicturePlayer {
 
             mTextureView.unlockCanvasAndPost(canvas);
 
-            mNoticeHandler.noticeUpdate((int) frameIndex);
-
             mCacheBitmaps[mPlayIndex] = null;
             mReusableBitmaps.add(bitmap);//将已经用过的Bitmap放回复用集合
 
             mPlayIndex++;
-            if (mPlayIndex >= MAX_CACHE_NUMBER) {
+            if (mPlayIndex >= mCacheFrameNumber) {
                 mPlayIndex = 0;
             }
 
             mCacheCount--;
+        }
+
+        private void update(long frameIndex) {
+            mNoticeHandler.noticeUpdate((int) frameIndex);
         }
 
         private void callWidth(Bitmap bitmap) {
@@ -298,7 +338,7 @@ class PicturePlayer {
         if (!mIsReadCancel || !mIsPlayCancel) {
             return;
         }
-        for (int i = 0; i < MAX_CACHE_NUMBER; i++) {
+        for (int i = 0; i < mCacheFrameNumber; i++) {
             ImageCache.recycleBitmap(mCacheBitmaps[i]);
             mCacheBitmaps[i] = null;
         }
@@ -327,4 +367,3 @@ class PicturePlayer {
         return mTextureView.getHeight();
     }
 }
-

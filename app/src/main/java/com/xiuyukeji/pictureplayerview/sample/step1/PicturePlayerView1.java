@@ -102,7 +102,8 @@ public class PicturePlayerView1 extends BasePicturePlayerView {
     }
 
     private static void recycleBitmap(Bitmap bitmap) {
-        if (bitmap != null && !bitmap.isRecycled())
+        if (bitmap != null && !bitmap.isRecycled()) {
             bitmap.recycle();
+        }
     }
 }
