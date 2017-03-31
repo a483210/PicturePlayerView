@@ -26,8 +26,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Toolbar mToolbar;
     private FloatingActionButton mStartFab;
-    private FloatingActionButton mStopFab;
     private FloatingActionButton mPauseFab;
+    private FloatingActionButton mStopFab;
     private PicturePlayerView mPicturePlayerView;
 
     @Override
@@ -42,8 +42,8 @@ public class MainActivity extends AppCompatActivity {
     private void findView() {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mStartFab = (FloatingActionButton) findViewById(R.id.start);
-        mStopFab = (FloatingActionButton) findViewById(R.id.stop);
         mPauseFab = (FloatingActionButton) findViewById(R.id.pause);
+        mStopFab = (FloatingActionButton) findViewById(R.id.stop);
         mPicturePlayerView = (PicturePlayerView) findViewById(R.id.player);
     }
 
@@ -63,16 +63,16 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        mStopFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mPicturePlayerView.stop();
-            }
-        });
         mPauseFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mPicturePlayerView.pause();
+            }
+        });
+        mStopFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mPicturePlayerView.stop();
             }
         });
     }

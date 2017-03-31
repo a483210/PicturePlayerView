@@ -200,6 +200,8 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
             return;
         }
 
+        mState = STOP;
+
         mPicturePlayer.stop();
     }
 
