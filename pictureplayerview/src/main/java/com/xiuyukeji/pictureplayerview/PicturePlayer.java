@@ -10,6 +10,9 @@ import android.graphics.Rect;
 import android.os.SystemClock;
 import android.view.TextureView;
 
+import com.xiuyukeji.pictureplayerview.interfaces.OnErrorListener;
+import com.xiuyukeji.pictureplayerview.interfaces.OnStopListener;
+import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
 import com.xiuyukeji.scheduler.OnFrameUpdateListener;
 import com.xiuyukeji.scheduler.OnSimpleFrameListener;
 import com.xiuyukeji.scheduler.Scheduler;
@@ -40,9 +43,6 @@ class PicturePlayer {
     private final int mCacheFrameNumber;//最大缓存帧数
     private final int mReusableFrameNumber;//最大复用缓存帧数
 
-    private TextureView mTextureView;
-    private NoticeHandler mNoticeHandler;
-
     private int mCacheCount;
     private Bitmap[] mCacheBitmaps;
     private ArrayList<Bitmap> mReusableBitmaps;
@@ -63,13 +63,18 @@ class PicturePlayer {
     private ReadThread mReadThread;
     private Scheduler mScheduler;
 
-    PicturePlayer(boolean isAntiAlias, int source, int scaleType, int cacheFrameNumber, TextureView textureView, NoticeHandler noticeHandler) {
+    private TextureView mTextureView;
+
+    private OnUpdateListener mOnUpdateListener;
+    private OnStopListener mOnStopListener;
+    private OnErrorListener mOnErrorListener;
+
+    PicturePlayer(boolean isAntiAlias, int source, int scaleType, int cacheFrameNumber, TextureView textureView) {
         this.mSource = source;
         this.mScaleType = scaleType;
         this.mCacheFrameNumber = cacheFrameNumber;
         this.mReusableFrameNumber = mCacheFrameNumber + mCacheFrameNumber / 2;
         this.mTextureView = textureView;
-        this.mNoticeHandler = noticeHandler;
 
         mPaint = new Paint();
         if (isAntiAlias) {
@@ -104,12 +109,13 @@ class PicturePlayer {
         return mScheduler.resume();
     }
 
-    void cancel() {
+    void stop() {
         mIsCancel = true;
         mReadThread.interrupt();
         if (mScheduler.isStarted()) {
             mScheduler.stop();
         }
+        join();
     }
 
     void setScaleType(int scaleType) {
@@ -126,6 +132,18 @@ class PicturePlayer {
 
     boolean isPaused() {
         return mScheduler != null && mScheduler.isPaused();
+    }
+
+    private void join() {
+        if (Thread.currentThread().getId() == mReadThread.getId()) {//如果是同一个线程调用则不等待，防止死循环
+            return;
+        }
+
+        try {
+            mReadThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private class ReadThread extends Thread {
@@ -158,8 +176,10 @@ class PicturePlayer {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                cancel();
-                mNoticeHandler.noticeError("读取图片失败");
+                PicturePlayer.this.stop();
+                if (mOnErrorListener != null) {
+                    mOnErrorListener.onError("读取图片失败");
+                }
             }
             mIsReadCancel = true;
             threadStop();
@@ -300,7 +320,9 @@ class PicturePlayer {
         }
 
         private void update(long frameIndex) {
-            mNoticeHandler.noticeUpdate((int) frameIndex);
+            if (mOnUpdateListener != null) {
+                mOnUpdateListener.onUpdate((int) frameIndex);
+            }
         }
 
         private void callWidth(Bitmap bitmap) {
@@ -356,7 +378,9 @@ class PicturePlayer {
         mIsPlayCancel = false;
         mIsCancel = false;
 
-        mNoticeHandler.noticeStop();
+        if (mOnStopListener != null) {
+            mOnStopListener.onStop();
+        }
     }
 
     private int getWidth() {
@@ -365,5 +389,17 @@ class PicturePlayer {
 
     private int getHeight() {
         return mTextureView.getHeight();
+    }
+
+    void setOnUpdateListener(OnUpdateListener l) {
+        this.mOnUpdateListener = l;
+    }
+
+    void setOnStopListener(OnStopListener l) {
+        this.mOnStopListener = l;
+    }
+
+    void setOnErrorListener(OnErrorListener l) {
+        this.mOnErrorListener = l;
     }
 }

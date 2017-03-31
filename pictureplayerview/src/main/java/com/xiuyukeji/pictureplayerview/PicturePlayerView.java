@@ -25,7 +25,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
 
     protected static final String TAG = "PicturePlayerView";
 
-    private static final int STOP = 0, START = 1, PAUSE = 2, STOPPING = 3;
+    private static final int STOP = 0, START = 1, PAUSE = 2;
 
     private boolean mIsLoop;//是否循环播放
     private boolean mIsOpaque;//背景是否透明
@@ -34,17 +34,13 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     private int mScaleType;//设置缩放类型
     private int mCacheFrameNumber;//缓存帧数
 
-    private PicturePlayer mPlayerCore;
+    private PicturePlayer mPicturePlayer;
 
     private int mState = STOP;
-    private boolean mIsRelease = false;
-
-    private boolean mIsWaitPlay;
 
     private boolean mIsEnabled = true;
 
     private OnChangeListener mOnChangeListener;
-    private OnStopListener mOnStopListener;
     private NoticeHandler mNoticeHandler;
 
     public PicturePlayerView(Context context) {
@@ -80,7 +76,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     private void findView() {
         mNoticeHandler = new NoticeHandler();
 
-        mPlayerCore = new PicturePlayer(mIsAntiAlias, mSource, mScaleType, mCacheFrameNumber, this, mNoticeHandler);
+        mPicturePlayer = new PicturePlayer(mIsAntiAlias, mSource, mScaleType, mCacheFrameNumber, this);
     }
 
     private void initView() {
@@ -89,21 +85,28 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
 
     private void setListener() {
         setSurfaceTextureListener(this);
-        mNoticeHandler.setOnStopListener(new OnStopListener() {
+        mPicturePlayer.setOnUpdateListener(new OnUpdateListener() {
+            @Override
+            public void onUpdate(int frame) {
+                mNoticeHandler.noticeUpdate(frame);
+            }
+        });
+        mPicturePlayer.setOnStopListener(new OnStopListener() {
             @Override
             public void onStop() {
-                if (!mIsLoop || mState == STOPPING) {//如果不循环或者已经调用stop方法则停止
+                if (mState != STOP && mIsLoop) {//重新开始播放
+                    mPicturePlayer.start();
+                } else {
                     drawClear();
                     mState = STOP;
-                    if (mOnStopListener != null)
-                        mOnStopListener.onStop();
-                    if (mIsWaitPlay) {
-                        start();
-                        mIsWaitPlay = false;
-                    }
-                } else {//重新开始播放
-                    mPlayerCore.start();
+                    mNoticeHandler.noticeStop();
                 }
+            }
+        });
+        mPicturePlayer.setOnErrorListener(new OnErrorListener() {
+            @Override
+            public void onError(String msg) {
+                mNoticeHandler.noticeError(msg);
             }
         });
     }
@@ -144,7 +147,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         if (mState != STOP) {
             return;
         }
-        mPlayerCore.setDataSource(paths, duration, paths.length);
+        mPicturePlayer.setDataSource(paths, duration, paths.length);
     }
 
     /**
@@ -157,25 +160,21 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         if (mState == START) {
             return;
         }
-        if (mState == STOPPING) {
-            mIsWaitPlay = true;
-            return;
-        }
 
         mState = START;
 
-        mPlayerCore.start();
+        mPicturePlayer.start();
     }
 
     /**
      * 恢复播放
      */
     public void resume() {
-        if (mState != PAUSE || !mPlayerCore.isStarted()) {
+        if (mState != PAUSE || !mPicturePlayer.isStarted()) {
             return;
         }
 
-        if (mPlayerCore.resume()) {
+        if (mPicturePlayer.resume()) {
             mState = START;
         }
     }
@@ -184,11 +183,11 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
      * 暂停播放
      */
     public void pause() {
-        if (mState != START || !mPlayerCore.isStarted()) {
+        if (mState != START || !mPicturePlayer.isStarted()) {
             return;
         }
 
-        if (mPlayerCore.pause()) {
+        if (mPicturePlayer.pause()) {
             mState = PAUSE;
         }
     }
@@ -197,13 +196,11 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
      * 停止播放
      */
     public void stop() {
-        if (mState == STOP || mState == STOPPING) {
+        if (mState == STOP) {
             return;
         }
 
-        mPlayerCore.cancel();
-
-        mState = STOPPING;
+        mPicturePlayer.stop();
     }
 
     /**
@@ -215,7 +212,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         if (mState != STOP) {
             return;
         }
-        mPlayerCore.setScaleType(scaleType);
+        mPicturePlayer.setScaleType(scaleType);
     }
 
     /**
@@ -227,17 +224,8 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         this.mIsLoop = isLoop;
     }
 
-    /**
-     * 释放
-     */
-    public void release() {
-        stop();
-        mIsRelease = true;
-    }
-
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        drawClear();
         if (mOnChangeListener != null) {
             mOnChangeListener.onCreated();
         }
@@ -262,9 +250,6 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     }
 
     private void drawClear() {
-        if (mIsRelease) {
-            return;
-        }
         if (getWidth() == 0 || getHeight() == 0) {
             return;
         }
@@ -289,7 +274,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     }
 
     public void setOnStopListener(OnStopListener l) {
-        this.mOnStopListener = l;
+        this.mNoticeHandler.setOnStopListener(l);
     }
 
     public void setOnErrorListener(OnErrorListener l) {

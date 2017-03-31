@@ -45,11 +45,13 @@ public abstract class BasePicturePlayerView extends TextureView implements Textu
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-        if (mFpsMeasureUtil == null)
+        if (mFpsMeasureUtil == null) {
             mFpsMeasureUtil = new FpsMeasureUtil();
+        }
         mFpsMeasureUtil.measureFps();
-        if (mOnFpsListener != null)
+        if (mOnFpsListener != null) {
             mOnFpsListener.onFps(mFpsMeasureUtil.getFpsText());
+        }
     }
 
     public void setOnFpsListener(OnFpsListener l) {

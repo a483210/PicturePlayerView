@@ -28,6 +28,8 @@ public final class Scheduler {
 
     private long mFrameIndex;
 
+    private boolean mIsSkipFrame = false;
+
     private boolean mIsStared = false;
     private boolean mIsRunning = false;
     private boolean mIsPaused = false;
@@ -161,6 +163,19 @@ public final class Scheduler {
         return mIsPaused;
     }
 
+    /**
+     * 是否跳帧，必须在没有开始运行之前调用，设置为True后当{@link #update(long)}被阻塞的时间超过{@link #mDelayTime}后将开始跳帧
+     *
+     * @param isSkipFrame 是否跳帧
+     */
+    public void setSkipFrame(boolean isSkipFrame) {
+        if (!isStarted()) {
+            throw new RuntimeException("scheduler has been running");
+        }
+
+        this.mIsSkipFrame = isSkipFrame;
+    }
+
     private void join() {
         if (Thread.currentThread().getId() == mFrameThread.getId()) {//如果是同一个线程调用则不等待，防止死循环
             return;
@@ -231,6 +246,14 @@ public final class Scheduler {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_FRAME:
+                    if (mIsSkipFrame) {
+                        double delayTime = SystemClock.uptimeMillis() - mCurrentUptimeMs - mDelayTime;
+                        if (delayTime > 0) {
+                            long delayIndex = (long) Math.ceil(delayTime / mDelayTime);
+                            mFrameIndex += delayIndex;
+                            mCurrentUptimeMs += delayIndex * mDelayTime;
+                        }
+                    }
                     mFrameIndex++;
                     if (mFrameIndex >= mFrameCount - 1) {
                         update(mFrameCount - 1);

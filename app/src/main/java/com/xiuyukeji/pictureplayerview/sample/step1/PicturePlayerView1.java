@@ -31,6 +31,8 @@ public class PicturePlayerView1 extends BasePicturePlayerView {
     private int mFrameCount;//总帧数
     private long mSpaceTime;//播放帧间隔
 
+    private PlayThread mPlayThread;
+
     //... 省略构造方法
     public PicturePlayerView1(Context context) {
         this(context, null);
@@ -57,6 +59,14 @@ public class PicturePlayerView1 extends BasePicturePlayerView {
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
         mPlayFrame = mFrameCount;
+
+        try {
+            if (mPlayThread != null) {
+                mPlayThread.join();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
@@ -68,7 +78,8 @@ public class PicturePlayerView1 extends BasePicturePlayerView {
         this.mSpaceTime = duration / mFrameCount;
 
         //开启线程
-        new PlayThread().start();
+        mPlayThread = new PlayThread();
+        mPlayThread.start();
     }
 
     private class PlayThread extends Thread {

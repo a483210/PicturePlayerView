@@ -14,8 +14,9 @@ public class PictureInfoUtil {
     public static PictureInfoUtil get() {
         if (instance == null) {
             synchronized (PictureInfoUtil.class) {
-                if (instance == null)
+                if (instance == null) {
                     instance = new PictureInfoUtil();
+                }
             }
         }
         return instance;
