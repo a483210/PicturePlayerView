@@ -226,6 +226,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
 
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        drawClear();
         if (mOnChangeListener != null) {
             mOnChangeListener.onCreated();
         }

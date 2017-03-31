@@ -58,6 +58,5 @@ public abstract class BasePicturePlayerView extends TextureView implements Textu
         this.mOnFpsListener = l;
     }
 
-
     public abstract void start(String[] paths, long duration);
 }

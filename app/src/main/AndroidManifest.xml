@@ -8,11 +8,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme.NoActionBar">
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -21,16 +20,13 @@
         </activity>
         <activity
             android:name=".step1.Step1Activity"
-            android:label="@string/action_step1"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:label="@string/action_step1" />
         <activity
             android:name=".step2.Step2Activity"
-            android:label="@string/action_step2"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:label="@string/action_step2" />
         <activity
             android:name=".step3.Step3Activity"
-            android:label="@string/action_step3"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:label="@string/action_step3" />
     </application>
 
 </manifest>

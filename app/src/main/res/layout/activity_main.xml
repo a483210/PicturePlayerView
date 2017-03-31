@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/barLayout"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
@@ -20,13 +25,20 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="@string/back_text" />
+        android:text="@string/back_text"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/barLayout" />
 
     <com.xiuyukeji.pictureplayerview.PicturePlayerView
         android:id="@+id/player"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/barLayout"
         app:opaque="false"
         app:source="assets" />
 
@@ -34,29 +46,29 @@
         android:id="@+id/start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
         android:layout_marginBottom="@dimen/fab_margin"
         android:layout_marginRight="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_media_play" />
+        app:layout_constraintBottom_toBottomOf="@+id/player"
+        app:layout_constraintRight_toRightOf="@+id/player"
+        app:srcCompat="@drawable/ic_play_arrow_white_24dp" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/stop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_marginBottom="@dimen/fab_margin"
         android:layout_marginRight="@dimen/fab_margin"
-        android:layout_toLeftOf="@id/start"
-        app:srcCompat="@android:drawable/ic_media_pause" />
+        app:layout_constraintBottom_toBottomOf="@+id/player"
+        app:layout_constraintRight_toLeftOf="@+id/start"
+        app:srcCompat="@drawable/ic_stop_white_24dp" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/pause"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_marginBottom="@dimen/fab_margin"
         android:layout_marginRight="@dimen/fab_margin"
-        android:layout_toLeftOf="@id/stop"
-        app:srcCompat="@android:drawable/ic_media_pause" />
-</RelativeLayout>
+        app:layout_constraintBottom_toBottomOf="@+id/player"
+        app:layout_constraintRight_toLeftOf="@+id/stop"
+        app:srcCompat="@drawable/ic_pause_white_24dp" />
+</android.support.constraint.ConstraintLayout>
