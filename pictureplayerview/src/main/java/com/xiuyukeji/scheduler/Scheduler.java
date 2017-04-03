@@ -61,7 +61,6 @@ public final class Scheduler {
         if (frameCount > duration) {
             throw new RuntimeException("duration must be greater than frameCount");
         }
-
         this.mDuration = duration;
         this.mFrameCount = frameCount;
         this.mOnFrameUpdateListener = l;
@@ -133,7 +132,7 @@ public final class Scheduler {
         mIsCancel = true;
         mHandler.removeMessages(MSG_FRAME);
         mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_MANUAL_QUIT), SystemClock.uptimeMillis());
-        join();//等待update执行完成
+        SchedulerUtils.join(mFrameThread);//等待update执行完成
     }
 
     /**
@@ -164,28 +163,17 @@ public final class Scheduler {
     }
 
     /**
-     * 是否跳帧，必须在没有开始运行之前调用，设置为True后当{@link #update(long)}被阻塞的时间超过{@link #mDelayTime}后将开始跳帧
+     * 是否跳帧，必须在没有开始运行之前调用
+     * 设置为True后当{@link #update(long)}被阻塞的时间超过{@link #mDelayTime}后将开始跳帧
      *
      * @param isSkipFrame 是否跳帧
      */
     public void setSkipFrame(boolean isSkipFrame) {
-        if (!isStarted()) {
+        if (isStarted()) {
             throw new RuntimeException("scheduler has been running");
         }
 
         this.mIsSkipFrame = isSkipFrame;
-    }
-
-    private void join() {
-        if (Thread.currentThread().getId() == mFrameThread.getId()) {//如果是同一个线程调用则不等待，防止死循环
-            return;
-        }
-
-        try {
-            mFrameThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     private void next(double uptimeMs) {
@@ -217,10 +205,6 @@ public final class Scheduler {
         mOnFrameUpdateListener.onFrameUpdate(frameIndex);
     }
 
-    public void setOnFrameListener(OnFrameListener l) {
-        this.mOnFrameListener = l;
-    }
-
     private final class FrameThread extends HandlerThread {
         FrameThread(String name) {
             super(name);
@@ -230,12 +214,11 @@ public final class Scheduler {
         public void onLooperPrepared() {
             mHandler = new FrameHandler();
 
-            mCurrentUptimeMs = SystemClock.uptimeMillis() + mDelayTime;
-
             mIsRunning = true;
 
+            mCurrentUptimeMs = SystemClock.uptimeMillis();
+
             prepare();
-            update(0);
             next(mCurrentUptimeMs);
         }
     }
@@ -246,22 +229,21 @@ public final class Scheduler {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_FRAME:
-                    if (mIsSkipFrame) {
-                        double delayTime = SystemClock.uptimeMillis() - mCurrentUptimeMs - mDelayTime;
-                        if (delayTime > 0) {
-                            long delayIndex = (long) Math.ceil(delayTime / mDelayTime);
-                            mFrameIndex += delayIndex;
-                            mCurrentUptimeMs += delayIndex * mDelayTime;
+                    update(mFrameIndex);
+                    if (!mIsPaused && !mIsCancel) {
+                        if (mIsSkipFrame) {
+                            double delayTime = SystemClock.uptimeMillis() - mCurrentUptimeMs - mDelayTime;
+                            if (delayTime > 0) {
+                                long delayIndex = (long) Math.ceil(delayTime / mDelayTime);
+                                mFrameIndex += delayIndex;
+                                mCurrentUptimeMs += delayIndex * mDelayTime;
+                            }
                         }
-                    }
-                    mFrameIndex++;
-                    if (mFrameIndex >= mFrameCount - 1) {
-                        update(mFrameCount - 1);
-                        quit();
-                    } else {
-                        update(mFrameIndex);
-                        if (!mIsPaused && !mIsCancel) {
-                            mCurrentUptimeMs += mDelayTime;
+                        mCurrentUptimeMs += mDelayTime;
+                        mFrameIndex++;
+                        if (mFrameIndex >= mFrameCount) {
+                            quit();
+                        } else {
                             next(mCurrentUptimeMs);
                         }
                     }

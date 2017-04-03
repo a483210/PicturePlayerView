@@ -39,8 +39,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/barLayout"
-        app:opaque="false"
-        app:source="assets" />
+        app:picture_opaque="false"
+        app:picture_source="assets" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/start"

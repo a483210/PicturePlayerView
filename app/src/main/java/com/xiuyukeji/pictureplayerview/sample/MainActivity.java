@@ -121,11 +121,11 @@ public class MainActivity extends AppCompatActivity {
             case ACTION_USE_OPAQUE:
                 PictureInfoUtil.get().setType(PictureInfoUtil.OPAQUE);
                 resetDataSource();
-                break;
+                return true;
             case ACTION_USE_TRANSPARENT:
                 PictureInfoUtil.get().setType(PictureInfoUtil.TRANSPARENT);
                 resetDataSource();
-                break;
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }

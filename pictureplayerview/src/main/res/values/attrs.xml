@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="PicturePlayerView">
-        <attr name="loop" format="boolean" />
-        <attr name="opaque" format="boolean" />
-        <attr name="antiAlias" format="boolean" />
-        <attr name="source">
+        <attr name="picture_loop" format="boolean" />
+        <attr name="picture_opaque" format="boolean" />
+        <attr name="picture_antiAlias" format="boolean" />
+        <attr name="picture_source">
             <enum name="file" value="0" />
             <enum name="assets" value="1" />
         </attr>
-        <attr name="scaleType">
+        <attr name="picture_scaleType">
             <enum name="fitWidth" value="0" />
             <enum name="fitHeight" value="1" />
             <enum name="fitCenter" value="2" />
             <enum name="fitCrop" value="3" />
         </attr>
-        <attr name="cacheFrameNumber" format="integer" />
+        <attr name="picture_cacheFrameNumber" format="integer" />
     </declare-styleable>
 </resources>

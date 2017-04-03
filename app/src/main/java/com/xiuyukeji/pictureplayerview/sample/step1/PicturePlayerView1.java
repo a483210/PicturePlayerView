@@ -24,12 +24,14 @@ import java.io.IOException;
 public class PicturePlayerView1 extends BasePicturePlayerView {
 
     private Paint mPaint;//画笔
+    private Rect mSrcRect;
+    private Rect mDstRect;
 
     private int mPlayFrame;//当前播放到那一帧，总帧数相关
 
     private String[] mPaths;//图片绝对地址集合
     private int mFrameCount;//总帧数
-    private long mSpaceTime;//播放帧间隔
+    private long mDelayTime;//播放帧间隔
 
     private PlayThread mPlayThread;
 
@@ -52,7 +54,9 @@ public class PicturePlayerView1 extends BasePicturePlayerView {
 
         setSurfaceTextureListener(this);//设置监听
 
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.FILTER_BITMAP_FLAG);//创建画笔
+        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);//创建画笔
+        mSrcRect = new Rect();
+        mDstRect = new Rect();
     }
 
     //... 省略SurfaceTextureListener的方法
@@ -75,7 +79,7 @@ public class PicturePlayerView1 extends BasePicturePlayerView {
     public void start(String[] paths, long duration) {
         this.mPaths = paths;
         this.mFrameCount = paths.length;
-        this.mSpaceTime = duration / mFrameCount;
+        this.mDelayTime = duration / mFrameCount;
 
         //开启线程
         mPlayThread = new PlayThread();
@@ -91,7 +95,7 @@ public class PicturePlayerView1 extends BasePicturePlayerView {
                     drawBitmap(bitmap);
                     recycleBitmap(bitmap);
                     mPlayFrame++;
-                    SystemClock.sleep(mSpaceTime);//暂停间隔时间
+                    SystemClock.sleep(mDelayTime);//暂停间隔时间
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -104,11 +108,11 @@ public class PicturePlayerView1 extends BasePicturePlayerView {
     }
 
     private void drawBitmap(Bitmap bitmap) {
-        Canvas canvas = lockCanvas(new Rect(0, 0, getWidth(), getHeight()));//锁定画布
+        Canvas canvas = lockCanvas();//锁定画布
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// 清空画布
-        Rect src = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-        Rect dst = new Rect(0, 0, getWidth(), bitmap.getHeight() * getWidth() / bitmap.getWidth());
-        canvas.drawBitmap(bitmap, src, dst, mPaint);//将bitmap画到画布上
+        mSrcRect.set(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        mDstRect.set(0, 0, getWidth(), bitmap.getHeight() * getWidth() / bitmap.getWidth());
+        canvas.drawBitmap(bitmap, mSrcRect, mDstRect, mPaint);//将bitmap画到画布上
         unlockCanvasAndPost(canvas);//解锁画布同时提交
     }
 

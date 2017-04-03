@@ -5,8 +5,9 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.TextureView;
 import android.view.TextureView.SurfaceTextureListener;
@@ -64,12 +65,12 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
             return;
         }
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.PicturePlayerView);
-        mIsLoop = typedArray.getBoolean(R.styleable.PicturePlayerView_loop, false);
-        mIsOpaque = typedArray.getBoolean(R.styleable.PicturePlayerView_opaque, true);
-        mIsAntiAlias = typedArray.getBoolean(R.styleable.PicturePlayerView_antiAlias, true);
-        mSource = typedArray.getInt(R.styleable.PicturePlayerView_source, PicturePlayer.FILE);
-        mScaleType = typedArray.getInt(R.styleable.PicturePlayerView_scaleType, PicturePlayer.FIT_WIDTH);
-        mCacheFrameNumber = typedArray.getInt(R.styleable.PicturePlayerView_cacheFrameNumber, PicturePlayer.MAX_CACHE_NUMBER);
+        mIsLoop = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_loop, false);
+        mIsOpaque = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_opaque, true);
+        mIsAntiAlias = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_antiAlias, true);
+        mSource = typedArray.getInt(R.styleable.PicturePlayerView_picture_source, PicturePlayer.FILE);
+        mScaleType = typedArray.getInt(R.styleable.PicturePlayerView_picture_scaleType, PicturePlayer.FIT_WIDTH);
+        mCacheFrameNumber = typedArray.getInt(R.styleable.PicturePlayerView_picture_cacheFrameNumber, PicturePlayer.MAX_CACHE_NUMBER);
         typedArray.recycle();
     }
 
@@ -128,7 +129,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
      * @param names    名称集合
      * @param duration 总时长
      */
-    public void setDataSource(String path, String[] names, long duration) {
+    public void setDataSource(@NonNull String path, @NonNull String[] names, @IntRange(from = 1) long duration) {
         int count = names.length;
         String[] paths = new String[names.length];
         for (int i = 0; i < count; i++) {
@@ -143,7 +144,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
      * @param paths    地址集合
      * @param duration 总时长
      */
-    public void setDataSource(String[] paths, long duration) {
+    public void setDataSource(@NonNull String[] paths, @IntRange(from = 1) long duration) {
         if (mState != STOP) {
             return;
         }
@@ -256,7 +257,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         if (getWidth() == 0 || getHeight() == 0) {
             return;
         }
-        Canvas canvas = lockCanvas(new Rect(0, 0, getWidth(), getHeight()));
+        Canvas canvas = lockCanvas();
         if (canvas == null) {
             return;
         }

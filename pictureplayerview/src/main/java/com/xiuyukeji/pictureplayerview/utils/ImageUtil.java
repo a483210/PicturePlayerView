@@ -1,4 +1,4 @@
-package com.xiuyukeji.pictureplayerview;
+package com.xiuyukeji.pictureplayerview.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,7 +9,7 @@ import android.os.Build;
  *
  * @author Created by jz on 2017/3/26 16:13
  */
-public class ImageCache {
+public class ImageUtil {
     /*
      *  判断该Bitmap是否可以设置到BitmapFactory.Options.inBitmap上
      */
