@@ -17,4 +17,9 @@
         android:orderInCategory="100"
         android:title="@string/action_step3"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_step4"
+        android:orderInCategory="100"
+        android:title="@string/action_step4"
+        app:showAsAction="never" />
 </menu>

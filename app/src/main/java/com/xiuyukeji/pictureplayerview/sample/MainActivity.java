@@ -13,6 +13,7 @@ import com.xiuyukeji.pictureplayerview.PicturePlayerView;
 import com.xiuyukeji.pictureplayerview.sample.step1.Step1Activity;
 import com.xiuyukeji.pictureplayerview.sample.step2.Step2Activity;
 import com.xiuyukeji.pictureplayerview.sample.step3.Step3Activity;
+import com.xiuyukeji.pictureplayerview.sample.step4.Step4Activity;
 import com.xiuyukeji.pictureplayerview.sample.utils.PictureInfoUtil;
 
 /**
@@ -117,6 +118,9 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_step3:
                 startActivity(new Intent(this, Step3Activity.class));
+                return true;
+            case R.id.action_step4:
+                startActivity(new Intent(this, Step4Activity.class));
                 return true;
             case ACTION_USE_OPAQUE:
                 PictureInfoUtil.get().setType(PictureInfoUtil.OPAQUE);

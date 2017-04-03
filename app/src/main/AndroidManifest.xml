@@ -27,6 +27,9 @@
         <activity
             android:name=".step3.Step3Activity"
             android:label="@string/action_step3" />
+        <activity
+            android:name=".step4.Step4Activity"
+            android:label="@string/action_step4" />
     </application>
 
 </manifest>
