@@ -110,7 +110,7 @@ public class PicturePlayerView1 extends BasePicturePlayerView {
     private void drawBitmap(Bitmap bitmap) {
         Canvas canvas = lockCanvas();//锁定画布
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// 清空画布
-        mSrcRect.set(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        mSrcRect.set(0, 0, bitmap.getWidth(), bitmap.getHeight());//这里我将2个rect抽离出去，防止重复创建
         mDstRect.set(0, 0, getWidth(), bitmap.getHeight() * getWidth() / bitmap.getWidth());
         canvas.drawBitmap(bitmap, mSrcRect, mDstRect, mPaint);//将bitmap画到画布上
         unlockCanvasAndPost(canvas);//解锁画布同时提交

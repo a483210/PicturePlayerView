@@ -281,9 +281,7 @@ class PicturePlayer {
 
             Canvas canvas = mTextureView.lockCanvas();
             if (canvas != null) {
-                if (frameIndex > 0) {
-                    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// 清空画布
-                }
+                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// 清空画布
 
                 int left = 0;
                 int top = 0;
