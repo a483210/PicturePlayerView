@@ -126,8 +126,8 @@ public class PicturePlayerView4 extends BasePicturePlayerView {
     }
 
     private Bitmap readBitmap(String path) throws IOException {
-        InputStream is = getResources().getAssets().open(path);
-        BitmapFactory.Options options = getReusableOptions(is);
+        InputStream is = getResources().getAssets().open(path);//这里需要以流的形式读取
+        BitmapFactory.Options options = getReusableOptions(is);//获取参数设置
         Bitmap bmp = BitmapFactory.decodeStream(is, null, options);
         is.close();
         return bmp;
