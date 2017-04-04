@@ -15,6 +15,7 @@ import android.util.AttributeSet;
 import com.xiuyukeji.pictureplayerview.sample.BasePicturePlayerView;
 import com.xiuyukeji.pictureplayerview.utils.ImageUtil;
 import com.xiuyukeji.scheduler.OnFrameUpdateListener;
+import com.xiuyukeji.scheduler.OnSimpleFrameListener;
 import com.xiuyukeji.scheduler.Scheduler;
 
 import java.io.IOException;
@@ -96,7 +97,8 @@ public class PicturePlayerView4 extends BasePicturePlayerView {
         mReadThread = new ReadThread();
         mReadThread.start();
         mScheduler = new Scheduler(duration, mFrameCount,
-                new FrameUpdateListener());
+                new FrameUpdateListener(),
+                new FrameListener());
     }
 
     private class ReadThread extends Thread {
@@ -186,6 +188,29 @@ public class PicturePlayerView4 extends BasePicturePlayerView {
             addReusable(mCacheBitmaps.remove(0));//必须在画完之后在删除，不然会出现画面撕裂
 
             mCacheCount--;
+        }
+    }
+
+    //当播放线程停止时回调，用处是结束时释放Bitmap
+    private class FrameListener extends OnSimpleFrameListener {
+
+        @Override
+        public void onStop() {
+            try {
+                mReadThread.join();//等待播放线程结束
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            int count = mCacheBitmaps.size();
+            for (int i = 0; i < count; i++) {
+                ImageUtil.recycleBitmap(mCacheBitmaps.get(i));
+            }
+            mCacheBitmaps.clear();
+            count = mReusableBitmaps.size();
+            for (int i = 0; i < count; i++) {
+                ImageUtil.recycleBitmap(mReusableBitmaps.get(i));
+            }
+            mReusableBitmaps.clear();
         }
     }
 
