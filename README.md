@@ -1,6 +1,6 @@
 # PicturePlayerView
 
-一个图片播放器
+一个图片播放器，欢迎来star
 
 **[文章地址](http://www.jianshu.com/p/53f9bd1fa1a6)**
 
