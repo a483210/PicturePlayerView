@@ -10,9 +10,13 @@ import android.os.Build;
  * @author Created by jz on 2017/3/26 16:13
  */
 public class ImageUtil {
+
+    private ImageUtil() {
+    }
+
     /*
-     *  判断该Bitmap是否可以设置到BitmapFactory.Options.inBitmap上
-     */
+         *  判断该Bitmap是否可以设置到BitmapFactory.Options.inBitmap上
+         */
     public static boolean canUseForInBitmap(Bitmap bitmap, BitmapFactory.Options options) {
         // 在Android4.4以后，如果要使用inBitmap的话，只需要解码的Bitmap比inBitmap设置的小就行了，对inSampleSize没有限制
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {

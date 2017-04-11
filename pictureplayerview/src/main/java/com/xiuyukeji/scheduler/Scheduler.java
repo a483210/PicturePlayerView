@@ -132,7 +132,7 @@ public final class Scheduler {
         mIsCancel = true;
         mHandler.removeMessages(MSG_FRAME);
         mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_MANUAL_QUIT), SystemClock.uptimeMillis());
-        SchedulerUtils.join(mFrameThread);//等待update执行完成
+        SchedulerUtil.join(mFrameThread);//等待update执行完成
     }
 
     /**
@@ -251,6 +251,8 @@ public final class Scheduler {
                 case MSG_MANUAL_QUIT:
                     cancel();
                     quit();
+                    break;
+                default:
                     break;
             }
         }

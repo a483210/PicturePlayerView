@@ -9,7 +9,7 @@ import android.support.annotation.NonNull;
  */
 public class CacheList<T> {
 
-    private volatile T[] mValues;
+    private T[] mValues;
 
     private int mMaxCount;
     private int mCount;

@@ -35,7 +35,6 @@ public class PicturePlayerView3 extends BasePicturePlayerView {
     private Rect mDstRect;
 
     private List<Bitmap> mCacheBitmaps;//缓存帧集合
-    private int mCacheCount;//当前缓存的帧数
 
     private int mReadFrame;//当前读取到那一帧，总帧数相关
 
@@ -99,7 +98,7 @@ public class PicturePlayerView3 extends BasePicturePlayerView {
         public void run() {
             try {
                 while (mReadFrame < mFrameCount) {//并且没有读完则继续读取
-                    if (mCacheCount >= MAX_CACHE_NUMBER) {//如果读取的超过最大缓存则暂停读取
+                    if (mCacheBitmaps.size() >= MAX_CACHE_NUMBER) {//如果读取的超过最大缓存则暂停读取
                         SystemClock.sleep(1);
                         continue;
                     }
@@ -108,7 +107,6 @@ public class PicturePlayerView3 extends BasePicturePlayerView {
                     mCacheBitmaps.add(bmp);
 
                     mReadFrame++;
-                    mCacheCount++;
 
                     if (mReadFrame == 1) {//读取到第一帧后在开始调度器
                         mScheduler.start();
@@ -127,15 +125,13 @@ public class PicturePlayerView3 extends BasePicturePlayerView {
     private class FrameUpdateListener implements OnFrameUpdateListener {
         @Override
         public void onFrameUpdate(long frameIndex) {
-            if (mCacheCount <= 0) {//如果当前没有帧，则直接跳过
+            if (mCacheBitmaps.isEmpty()) {//如果当前没有帧，则直接跳过
                 return;
             }
 
             Bitmap bitmap = mCacheBitmaps.remove(0);//获取第一帧同时从缓存里删除
             drawBitmap(bitmap);
             recycleBitmap(bitmap);
-
-            mCacheCount--;
         }
     }
 

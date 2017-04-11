@@ -22,4 +22,9 @@
         android:orderInCategory="100"
         android:title="@string/action_step4"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_gl"
+        android:orderInCategory="100"
+        android:title="@string/action_gl"
+        app:showAsAction="never" />
 </menu>

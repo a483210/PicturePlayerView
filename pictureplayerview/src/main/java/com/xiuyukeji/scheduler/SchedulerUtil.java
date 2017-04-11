@@ -5,7 +5,11 @@ package com.xiuyukeji.scheduler;
  *
  * @author Created by jz on 2017/4/1 11:35
  */
-public class SchedulerUtils {
+public class SchedulerUtil {
+
+    private SchedulerUtil() {
+    }
+
     /**
      * 等待线程结束
      *

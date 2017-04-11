@@ -1,39 +1,42 @@
-package com.xiuyukeji.pictureplayerview;
+package com.xiuyukeji.glpictureplayerview;
 
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.SurfaceTexture;
+import android.opengl.GLSurfaceView;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
-import android.view.TextureView;
-import android.view.TextureView.SurfaceTextureListener;
 
+import com.xiuyukeji.pictureplayerview.NoticeHandler;
+import com.xiuyukeji.pictureplayerview.PicturePlayer;
+import com.xiuyukeji.pictureplayerview.R;
 import com.xiuyukeji.pictureplayerview.interfaces.OnChangeListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnErrorListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnStopListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
 
-/**
- * 图片播放器
- *
- * @author Created by jz on 2017/3/26 16:07
- */
-public class PicturePlayerView extends TextureView implements SurfaceTextureListener {
+import minus.android.support.opengl.GLTextureView;
 
-    protected static final String TAG = "PicturePlayerView";
+/**
+ * gl实现图片播放器
+ *
+ * @author Created by jz on 2017/4/7 9:29
+ */
+public class GLPicturePlayerView extends GLTextureView {
+
+    protected static final String TAG = "GLPicturePlayerView";
 
     private static final int STOP = 0, START = 1, PAUSE = 2;
 
     private boolean mIsLoop;//是否循环播放
     private boolean mIsOpaque;//背景是否透明
-    private boolean mIsAntiAlias;//是否抗锯齿
     private int mSource;//设置来源
     private int mScaleType;//设置缩放类型
     private int mCacheFrameNumber;//缓存帧数
 
     private PicturePlayer mPlayer;
-    private PictureRenderer mRenderer;
+    private GLPictureRenderer mRenderer;
 
     private int mState = STOP;
 
@@ -42,16 +45,12 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     private OnChangeListener mOnChangeListener;
     private NoticeHandler mNoticeHandler;
 
-    public PicturePlayerView(Context context) {
+    public GLPicturePlayerView(Context context) {
         this(context, null);
     }
 
-    public PicturePlayerView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
-
-    public PicturePlayerView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
+    public GLPicturePlayerView(Context context, AttributeSet attrs) {
+        super(context, attrs);
         initAttrs(attrs);
         findView();
         initView();
@@ -65,9 +64,8 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.PicturePlayerView);
         mIsLoop = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_loop, false);
         mIsOpaque = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_opaque, true);
-        mIsAntiAlias = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_antiAlias, true);
         mSource = typedArray.getInt(R.styleable.PicturePlayerView_picture_source, PicturePlayer.FILE);
-        mScaleType = typedArray.getInt(R.styleable.PicturePlayerView_picture_scaleType, PictureRenderer.FIT_CROP);
+        mScaleType = typedArray.getInt(R.styleable.PicturePlayerView_picture_scaleType, GLPictureRenderer.FIT_CROP);
         mCacheFrameNumber = typedArray.getInt(R.styleable.PicturePlayerView_picture_cacheFrameNumber, PicturePlayer.MAX_CACHE_NUMBER);
         typedArray.recycle();
     }
@@ -75,16 +73,20 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     private void findView() {
         mNoticeHandler = new NoticeHandler();
 
-        mRenderer = new PictureRenderer(mIsAntiAlias, mScaleType, this);
+        mRenderer = new GLPictureRenderer(mScaleType, this);
         mPlayer = new PicturePlayer(getContext(), mSource, mCacheFrameNumber, mRenderer);
     }
 
     private void initView() {
         setOpaque(mIsOpaque);
+
+        setEGLContextClientVersion(2);
+        setEGLConfigChooser(8, 8, 8, 8, 0, 0);
+        setRenderer(mRenderer);
+        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
     private void setListener() {
-        setSurfaceTextureListener(this);
         mRenderer.setOnUpdateListener(new OnUpdateListener() {
             @Override
             public void onUpdate(int frame) {
@@ -228,7 +230,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
 
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        mRenderer.drawClear();
+        super.onSurfaceTextureAvailable(surface, width, height);
         if (mOnChangeListener != null) {
             mOnChangeListener.onCreated();
         }
@@ -236,7 +238,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-
+        super.onSurfaceTextureSizeChanged(surface, width, height);
     }
 
     @Override
@@ -245,11 +247,12 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         if (mOnChangeListener != null) {
             mOnChangeListener.onDestroyed();
         }
-        return true;
+        return super.onSurfaceTextureDestroyed(surface);
     }
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        super.onSurfaceTextureUpdated(surface);
     }
 
     public boolean isPaused() {
@@ -275,5 +278,4 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     public void setOnChangeListener(OnChangeListener l) {
         this.mOnChangeListener = l;
     }
-
 }

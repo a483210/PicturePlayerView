@@ -1,24 +1,17 @@
 package com.xiuyukeji.pictureplayerview;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.Rect;
 import android.os.SystemClock;
-import android.view.TextureView;
+import android.support.annotation.NonNull;
 
-import com.xiuyukeji.pictureplayerview.interfaces.OnErrorListener;
-import com.xiuyukeji.pictureplayerview.interfaces.OnStopListener;
-import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
 import com.xiuyukeji.pictureplayerview.utils.CacheList;
 import com.xiuyukeji.pictureplayerview.utils.ImageUtil;
 import com.xiuyukeji.scheduler.OnFrameUpdateListener;
 import com.xiuyukeji.scheduler.OnSimpleFrameListener;
 import com.xiuyukeji.scheduler.Scheduler;
-import com.xiuyukeji.scheduler.SchedulerUtils;
+import com.xiuyukeji.scheduler.SchedulerUtil;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -30,31 +23,26 @@ import java.io.InputStream;
  *
  * @author Created by jz on 2017/3/26 16:55
  */
-class PicturePlayer {
+public class PicturePlayer {
 
     public static final int FILE = 0, ASSETS = 1;
 
-    public static final int FIT_WIDTH = 0, FIT_HEIGHT = 1, FIT_CENTER = 2, FIT_CROP = 3;
-
     public static final int MAX_CACHE_NUMBER = 12;
 
-    private Paint mPaint;
-    private Rect mSrcRect;
-    private Rect mDstRect;
+    private Context mContext;
 
     private int mSource;//设置来源
-    private int mScaleType;//设置缩放类型
     private final int mCacheFrameNumber;//最大缓存帧数
     private final int mReusableFrameNumber;//最大复用缓存帧数
+
+    private int mReadFrame;
 
     private CacheList<Bitmap> mCacheBitmaps;
     private CacheList<Bitmap> mReusableBitmaps;
 
-    private int mReadFrame;
-
-    private boolean mIsReadCancel;
-    private boolean mIsPlayCancel;
-    private boolean mIsCancel;
+    private volatile boolean mIsReadCancel;
+    private volatile boolean mIsPlayCancel;
+    private volatile boolean mIsCancel;
 
     private String[] mPaths;
     private long mDuration;
@@ -63,26 +51,16 @@ class PicturePlayer {
     private ReadThread mReadThread;
     private Scheduler mScheduler;
 
-    private TextureView mTextureView;
+    private Renderer mRenderer;
 
-    private OnUpdateListener mOnUpdateListener;
-    private OnStopListener mOnStopListener;
-    private OnErrorListener mOnErrorListener;
-
-    PicturePlayer(boolean isAntiAlias, int source, int scaleType, int cacheFrameNumber, TextureView textureView) {
+    public PicturePlayer(@NonNull Context context,
+                         int source, int cacheFrameNumber,
+                         @NonNull Renderer renderer) {
+        this.mContext = context;
         this.mSource = source;
-        this.mScaleType = scaleType;
         this.mCacheFrameNumber = cacheFrameNumber;
         this.mReusableFrameNumber = mCacheFrameNumber / 2;
-        this.mTextureView = textureView;
-
-        mPaint = new Paint();
-        if (isAntiAlias) {
-            mPaint.setAntiAlias(true);
-            mPaint.setDither(true);
-        }
-        mSrcRect = new Rect();
-        mDstRect = new Rect();
+        this.mRenderer = renderer;
 
         mCacheBitmaps = new CacheList<>(new Bitmap[mCacheFrameNumber],
                 new CacheList.OnRemoveListener<Bitmap>() {
@@ -102,13 +80,13 @@ class PicturePlayer {
                 });
     }
 
-    void setDataSource(String[] paths, long duration, int frameCount) {
+    public void setDataSource(String[] paths, long duration, int frameCount) {
         this.mPaths = paths;
         this.mDuration = duration;
         this.mFrameCount = frameCount;
     }
 
-    void start() {
+    public void start() {
         mReadThread = new ReadThread();
         mScheduler = new Scheduler(mDuration, mFrameCount,
                 new FrameUpdateListener(),
@@ -117,45 +95,39 @@ class PicturePlayer {
         mReadThread.start();
     }
 
-    boolean pause() {
+    public boolean pause() {
         return mScheduler.pause();
     }
 
-    boolean resume() {
+    public boolean resume() {
         return mScheduler.resume();
     }
 
-    void stop() {
+    public void stop() {
         mIsCancel = true;
         mReadThread.interrupt();
         if (mScheduler.isStarted()) {
             mScheduler.stop();
         }
-        SchedulerUtils.join(mReadThread);
+        SchedulerUtil.join(mReadThread);
     }
 
-    void setScaleType(int scaleType) {
-        this.mScaleType = scaleType;
-    }
-
-    boolean isStarted() {
+    public boolean isStarted() {
         return mScheduler != null && mScheduler.isStarted();
     }
 
-    boolean isRunning() {
+    public boolean isRunning() {
         return mScheduler != null && mScheduler.isRunning();
     }
 
-    boolean isPaused() {
+    public boolean isPaused() {
         return mScheduler != null && mScheduler.isPaused();
     }
 
     private void error(Exception error) {
         error.printStackTrace();
         PicturePlayer.this.stop();
-        if (mOnErrorListener != null) {
-            mOnErrorListener.onError("读取图片失败");
-        }
+        mRenderer.onError("读取图片失败");
     }
 
     private class ReadThread extends Thread {
@@ -194,7 +166,7 @@ class PicturePlayer {
         if (mSource == FILE) {
             is = new BufferedInputStream(new FileInputStream(path));
         } else {
-            is = mTextureView.getResources().getAssets().open(path);
+            is = mContext.getResources().getAssets().open(path);
         }
         BitmapFactory.Options options = getReusableOptions(is);
         Bitmap bmp = BitmapFactory.decodeStream(is, null, options);
@@ -235,72 +207,17 @@ class PicturePlayer {
     }
 
     private class FrameUpdateListener implements OnFrameUpdateListener {
-
-        private static final int WIDTH = 0, HEIGHT = 1;
-
-        private float mScale;
-        private int mWidth;
-        private int mHeight;
-        private int state = WIDTH;
-
         @Override
         public void onFrameUpdate(long index) {
             int frameIndex = (int) index;
 
-            update(frameIndex);
             Bitmap bitmap = getBitmap(frameIndex);
 
-            if (bitmap == null) {
-                return;
+            mRenderer.onDraw(frameIndex, bitmap);
+
+            if (bitmap != null) {
+                mCacheBitmaps.removeFirst();//在这一帧画完后再放进复用池，防止画面撕裂
             }
-
-            if (mScale == 0) {
-                switch (mScaleType) {
-                    case FIT_WIDTH:
-                        callWidth(bitmap);
-                        break;
-                    case FIT_HEIGHT:
-                        callHeight(bitmap);
-                        break;
-                    case FIT_CENTER:
-                        if (getWidth() * bitmap.getWidth() > getHeight() * bitmap.getHeight()) {
-                            callHeight(bitmap);
-                        } else {
-                            callWidth(bitmap);
-                        }
-                        break;
-                    case FIT_CROP:
-                        if (getWidth() * bitmap.getWidth() > getHeight() * bitmap.getHeight()) {
-                            callWidth(bitmap);
-                        } else {
-                            callHeight(bitmap);
-                        }
-                        break;
-                }
-            }
-
-            Canvas canvas = mTextureView.lockCanvas();
-            if (canvas != null) {
-                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// 清空画布
-
-                int left = 0;
-                int top = 0;
-                if (state == WIDTH) {
-                    top = calculateTop();
-                } else {
-                    left = calculateLeft();
-                }
-                int right = left + mWidth;
-                int bottom = top + mHeight;
-
-                mSrcRect.set(0, 0, bitmap.getWidth(), bitmap.getHeight());
-                mDstRect.set(left, top, right, bottom);
-                canvas.drawBitmap(bitmap, mSrcRect, mDstRect, mPaint);
-
-                mTextureView.unlockCanvasAndPost(canvas);
-            }
-
-            mCacheBitmaps.removeFirst();//在这一帧画完后再放进复用池，防止画面撕裂
         }
 
         private Bitmap getBitmap(int frameIndex) {
@@ -324,34 +241,6 @@ class PicturePlayer {
             }
 
             return bitmap;
-        }
-
-        private void update(int frameIndex) {
-            if (mOnUpdateListener != null) {
-                mOnUpdateListener.onUpdate(frameIndex);
-            }
-        }
-
-        private void callWidth(Bitmap bitmap) {
-            mScale = getWidth() / (float) bitmap.getWidth();
-            mWidth = getWidth();
-            mHeight = (int) (bitmap.getHeight() * mScale);
-            state = WIDTH;
-        }
-
-        private void callHeight(Bitmap bitmap) {
-            mScale = getHeight() / (float) bitmap.getHeight();
-            mWidth = (int) (bitmap.getWidth() * mScale);
-            mHeight = getHeight();
-            state = HEIGHT;
-        }
-
-        private int calculateTop() {
-            return (getHeight() - mHeight) / 2;
-        }
-
-        private int calculateLeft() {
-            return (getWidth() - mWidth) / 2;
         }
     }
 
@@ -379,28 +268,14 @@ class PicturePlayer {
         mIsPlayCancel = false;
         mIsCancel = false;
 
-        if (mOnStopListener != null) {
-            mOnStopListener.onStop();
-        }
+        mRenderer.onStop();
     }
 
-    private int getWidth() {
-        return mTextureView.getWidth();
-    }
+    public interface Renderer {
+        void onDraw(int frameIndex, Bitmap bitmap);
 
-    private int getHeight() {
-        return mTextureView.getHeight();
-    }
+        void onStop();
 
-    void setOnUpdateListener(OnUpdateListener l) {
-        this.mOnUpdateListener = l;
-    }
-
-    void setOnStopListener(OnStopListener l) {
-        this.mOnStopListener = l;
-    }
-
-    void setOnErrorListener(OnErrorListener l) {
-        this.mOnErrorListener = l;
+        void onError(String message);
     }
 }

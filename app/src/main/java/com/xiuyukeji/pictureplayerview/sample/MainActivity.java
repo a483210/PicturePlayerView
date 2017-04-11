@@ -8,12 +8,16 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.xiuyukeji.pictureplayerview.PicturePlayerView;
+import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
+import com.xiuyukeji.pictureplayerview.sample.gl.GLActivity;
 import com.xiuyukeji.pictureplayerview.sample.step1.Step1Activity;
 import com.xiuyukeji.pictureplayerview.sample.step2.Step2Activity;
 import com.xiuyukeji.pictureplayerview.sample.step3.Step3Activity;
 import com.xiuyukeji.pictureplayerview.sample.step4.Step4Activity;
+import com.xiuyukeji.pictureplayerview.sample.utils.FpsMeasureUtil;
 import com.xiuyukeji.pictureplayerview.sample.utils.PictureInfoUtil;
 
 /**
@@ -30,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton mPauseFab;
     private FloatingActionButton mStopFab;
     private PicturePlayerView mPicturePlayerView;
+    private TextView mFpsView;
+
+    private FpsMeasureUtil mFpsMeasureUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,10 +53,14 @@ public class MainActivity extends AppCompatActivity {
         mPauseFab = (FloatingActionButton) findViewById(R.id.pause);
         mStopFab = (FloatingActionButton) findViewById(R.id.stop);
         mPicturePlayerView = (PicturePlayerView) findViewById(R.id.player);
+        mFpsView = (TextView) findViewById(R.id.fps);
+
+        mFpsMeasureUtil = new FpsMeasureUtil();
     }
 
     private void initView() {
         setSupportActionBar(mToolbar);
+        mPicturePlayerView.setLoop(true);
         resetDataSource();
     }
 
@@ -74,6 +85,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mPicturePlayerView.stop();
+            }
+        });
+        mPicturePlayerView.setOnUpdateListener(new OnUpdateListener() {
+            @Override
+            public void onUpdate(int frame) {
+                mFpsMeasureUtil.measureFps();
+                mFpsView.setText(mFpsMeasureUtil.getFpsText());
             }
         });
     }
@@ -121,6 +139,9 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_step4:
                 startActivity(new Intent(this, Step4Activity.class));
+                return true;
+            case R.id.action_gl:
+                startActivity(new Intent(this, GLActivity.class));
                 return true;
             case ACTION_USE_OPAQUE:
                 PictureInfoUtil.get().setType(PictureInfoUtil.OPAQUE);

@@ -12,7 +12,7 @@ import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
  *
  * @author Created by jz on 2017/3/26 16:52
  */
-class NoticeHandler extends Handler {
+public class NoticeHandler extends Handler {
 
     private static final int UPDATE = 0, STOP = 1, ERROR = -1;
 
@@ -38,6 +38,8 @@ class NoticeHandler extends Handler {
                 if (mOnErrorListener != null) {
                     mOnErrorListener.onError(String.valueOf(msg.obj));
                 }
+                break;
+            default:
                 break;
         }
     }
