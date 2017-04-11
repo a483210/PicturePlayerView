@@ -1,6 +1,6 @@
 # PicturePlayerView
 
-一个图片播放器，欢迎来star
+Android PicturePlayerView 基于TextureView的图片播放器
 
 **[文章地址](http://www.jianshu.com/p/53f9bd1fa1a6)**
 
@@ -8,3 +8,5 @@
 
 ![](gifts/lottielogo_gif.gif)
 ![](gifts/lottielogo_transparent_gif.gif)
+
+**如果它有解决你的问题的话，请star下，谢谢。**
