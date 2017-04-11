@@ -4,12 +4,10 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import com.xiuyukeji.glpictureplayerview.GLPicturePlayerView;
-import com.xiuyukeji.pictureplayerview.interfaces.OnStopListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
 import com.xiuyukeji.pictureplayerview.sample.R;
 import com.xiuyukeji.pictureplayerview.sample.utils.FpsMeasureUtil;
@@ -53,8 +51,6 @@ public class GLActivity extends AppCompatActivity {
 
     private void initView() {
         setSupportActionBar(mToolbar);
-
-        mPicturePlayerView.setLoop(true);
         mPicturePlayerView.setDataSource(PictureInfoUtil.get().getPaths(),
                 PictureInfoUtil.get().getDuration());
     }
@@ -87,12 +83,6 @@ public class GLActivity extends AppCompatActivity {
             public void onUpdate(int frame) {
                 mFpsMeasureUtil.measureFps();
                 mFpsView.setText(mFpsMeasureUtil.getFpsText());
-            }
-        });
-        mPicturePlayerView.setOnStopListener(new OnStopListener() {
-            @Override
-            public void onStop() {
-                Log.i("Tool", "stop");
             }
         });
     }

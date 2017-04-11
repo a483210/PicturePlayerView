@@ -49,7 +49,7 @@ public class PictureInfoUtil {
             mTransparentPaths[i] = String.format("%s/lottie_%s.png", mTransparentFileName, getIndex(count, i + 1));
         }
 
-        mDuration = count * 1000 / 60;
+        mDuration = count * 1000 / 25;
     }
 
     private static String getIndex(int max, int i) {
