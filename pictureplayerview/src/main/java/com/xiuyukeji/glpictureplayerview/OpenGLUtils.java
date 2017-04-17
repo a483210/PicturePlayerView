@@ -1,7 +1,9 @@
 package com.xiuyukeji.glpictureplayerview;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.opengl.GLES20;
+import android.opengl.GLUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,6 +21,28 @@ import java.nio.FloatBuffer;
 public class OpenGLUtils {
 
     private OpenGLUtils() {
+    }
+
+    public static int[] loadTexture(Bitmap bitmap, int[] textureIds) {
+        if (textureIds == null) {
+            textureIds = new int[1];
+            GLES20.glGenTextures(1, textureIds, 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureIds[0]);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                    GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                    GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                    GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                    GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+        } else {
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureIds[0]);
+            GLUtils.texSubImage2D(GLES20.GL_TEXTURE_2D, 0, 0, 0, bitmap);
+        }
+        return textureIds;
     }
 
     public static FloatBuffer getFloatBuffer(float[] values) {

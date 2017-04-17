@@ -3,7 +3,6 @@ package com.xiuyukeji.glpictureplayerview;
 import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
-import android.opengl.GLUtils;
 
 import com.xiuyukeji.pictureplayerview.PicturePlayer;
 import com.xiuyukeji.pictureplayerview.R;
@@ -34,7 +33,7 @@ class GLPictureRenderer implements GLTextureView.Renderer, PicturePlayer.Rendere
     private int mCoordinateHandle;
     private int mTextureHandle;
 
-    private final int[] mBitmapTextureId;
+    private int[] mTextureIds;
 
     private FloatBuffer mVertexBuffer;
     private final FloatBuffer mCoordinateBuffer;
@@ -59,8 +58,6 @@ class GLPictureRenderer implements GLTextureView.Renderer, PicturePlayer.Rendere
     GLPictureRenderer(int scaleType, GLPicturePlayerView glTextureView) {
         this.mScaleType = scaleType;
         this.mGLTextureView = glTextureView;
-
-        mBitmapTextureId = new int[1];
 
         mCoordinateBuffer = OpenGLUtils.getFloatBuffer(new float[]{
                 0.0f, 0.0f,
@@ -93,19 +90,6 @@ class GLPictureRenderer implements GLTextureView.Renderer, PicturePlayer.Rendere
         mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
         mCoordinateHandle = GLES20.glGetAttribLocation(mProgram, "vCoordinate");
         mTextureHandle = GLES20.glGetUniformLocation(mProgram, "vTexture");
-
-        initBitmapTexture();
-    }
-
-    //初始化图像纹理
-    private void initBitmapTexture() {
-        GLES20.glGenTextures(1, mBitmapTextureId, 0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mBitmapTextureId[0]);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
     }
 
     @Override
@@ -131,7 +115,10 @@ class GLPictureRenderer implements GLTextureView.Renderer, PicturePlayer.Rendere
 
     @Override
     public void onSurfaceDestroyed() {
-        GLES20.glDeleteTextures(1, mBitmapTextureId, 0);
+        if (mTextureIds != null) {
+            GLES20.glDeleteTextures(1, mTextureIds, 0);
+            mTextureIds = null;
+        }
     }
 
     private void glDraw() {
@@ -156,9 +143,8 @@ class GLPictureRenderer implements GLTextureView.Renderer, PicturePlayer.Rendere
 
     private void bindTexture() {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mBitmapTextureId[0]);
 
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, mBitmap, 0);//创建纹理
+        mTextureIds = OpenGLUtils.loadTexture(mBitmap, mTextureIds);
 
         GLES20.glUniform1i(mTextureHandle, 0);
     }
