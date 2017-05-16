@@ -6,5 +6,5 @@
 
 图片素材我使用的是[lottie-android](https://github.com/airbnb/lottie-android)的Logo
 
-![](gifts/lottielogo_gif.gif)
-![](gifts/lottielogo_transparent_gif.gif)
+![](https://github.com/a483210/PicturePlayerView/blob/master/gifts/lottielogo_gif.gif)
+![](https://github.com/a483210/PicturePlayerView/blob/master/gifts/lottielogo_transparent_gif.gif)
