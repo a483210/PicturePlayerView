@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion 25
@@ -8,16 +9,23 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 1
-        versionName "1.0"
+        versionName "0.1.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+        options.addStringOption('encoding', 'UTF-8')
+        options.addStringOption('charSet', 'UTF-8')
     }
 }
 
@@ -28,4 +36,13 @@ dependencies {
     })
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:support-annotations:25.3.1'
+}
+
+publish {
+    userOrg = 'a483210'
+    groupId = 'com.xiuyukeji.pictureplayerview'
+    artifactId = 'pictureplayerview'
+    publishVersion = '0.1.0'
+    desc = 'picture player'
+    website = 'https://github.com/a483210/PicturePlayerView'
 }
