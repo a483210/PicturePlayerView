@@ -18,21 +18,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".step1.Step1Activity"
-            android:label="@string/action_step1" />
-        <activity
-            android:name=".step2.Step2Activity"
-            android:label="@string/action_step2" />
-        <activity
-            android:name=".step3.Step3Activity"
-            android:label="@string/action_step3" />
-        <activity
-            android:name=".step4.Step4Activity"
-            android:label="@string/action_step4" />
-        <activity
-            android:name=".gl.GLActivity"
-            android:label="@string/action_gl" />
     </application>
 
 </manifest>

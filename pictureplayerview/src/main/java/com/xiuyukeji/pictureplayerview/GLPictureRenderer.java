@@ -1,11 +1,9 @@
-package com.xiuyukeji.glpictureplayerview;
+package com.xiuyukeji.pictureplayerview;
 
 import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
 
-import com.xiuyukeji.pictureplayerview.PicturePlayer;
-import com.xiuyukeji.pictureplayerview.R;
 import com.xiuyukeji.pictureplayerview.interfaces.OnErrorListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnStopListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;

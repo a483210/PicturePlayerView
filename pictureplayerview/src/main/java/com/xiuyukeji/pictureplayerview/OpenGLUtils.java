@@ -1,4 +1,4 @@
-package com.xiuyukeji.glpictureplayerview;
+package com.xiuyukeji.pictureplayerview;
 
 import android.content.Context;
 import android.graphics.Bitmap;

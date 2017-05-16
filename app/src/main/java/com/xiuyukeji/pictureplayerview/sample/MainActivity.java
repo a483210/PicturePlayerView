@@ -1,6 +1,5 @@
 package com.xiuyukeji.pictureplayerview.sample;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -10,13 +9,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.xiuyukeji.pictureplayerview.PicturePlayerView;
+import com.xiuyukeji.pictureplayerview.GLPicturePlayerView;
 import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
-import com.xiuyukeji.pictureplayerview.sample.gl.GLActivity;
-import com.xiuyukeji.pictureplayerview.sample.step1.Step1Activity;
-import com.xiuyukeji.pictureplayerview.sample.step2.Step2Activity;
-import com.xiuyukeji.pictureplayerview.sample.step3.Step3Activity;
-import com.xiuyukeji.pictureplayerview.sample.step4.Step4Activity;
 import com.xiuyukeji.pictureplayerview.sample.utils.FpsMeasureUtil;
 import com.xiuyukeji.pictureplayerview.sample.utils.PictureInfoUtil;
 
@@ -33,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton mStartFab;
     private FloatingActionButton mPauseFab;
     private FloatingActionButton mStopFab;
-    private PicturePlayerView mPicturePlayerView;
+    private GLPicturePlayerView mPicturePlayerView;
     private TextView mFpsView;
 
     private FpsMeasureUtil mFpsMeasureUtil;
@@ -52,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         mStartFab = (FloatingActionButton) findViewById(R.id.start);
         mPauseFab = (FloatingActionButton) findViewById(R.id.pause);
         mStopFab = (FloatingActionButton) findViewById(R.id.stop);
-        mPicturePlayerView = (PicturePlayerView) findViewById(R.id.player);
+        mPicturePlayerView = (GLPicturePlayerView) findViewById(R.id.player);
         mFpsView = (TextView) findViewById(R.id.fps);
 
         mFpsMeasureUtil = new FpsMeasureUtil();
@@ -127,21 +121,8 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         switch (id) {
-            case R.id.action_step1:
-                startActivity(new Intent(this, Step1Activity.class));
-                return true;
-            case R.id.action_step2:
-                startActivity(new Intent(this, Step2Activity.class));
-                return true;
-            case R.id.action_step3:
-                startActivity(new Intent(this, Step3Activity.class));
-                return true;
-            case R.id.action_step4:
-                startActivity(new Intent(this, Step4Activity.class));
-                return true;
-            case R.id.action_gl:
-                startActivity(new Intent(this, GLActivity.class));
-                return true;
+            case R.id.action_none:
+                break;
             case ACTION_USE_OPAQUE:
                 PictureInfoUtil.get().setType(PictureInfoUtil.OPAQUE);
                 resetDataSource();
