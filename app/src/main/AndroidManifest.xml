@@ -30,9 +30,6 @@
         <activity
             android:name=".step4.Step4Activity"
             android:label="@string/action_step4" />
-        <activity
-            android:name=".gl.GLActivity"
-            android:label="@string/action_gl" />
     </application>
 
 </manifest>

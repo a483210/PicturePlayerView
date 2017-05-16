@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.xiuyukeji.pictureplayerview.PicturePlayerView;
 import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
-import com.xiuyukeji.pictureplayerview.sample.gl.GLActivity;
 import com.xiuyukeji.pictureplayerview.sample.step1.Step1Activity;
 import com.xiuyukeji.pictureplayerview.sample.step2.Step2Activity;
 import com.xiuyukeji.pictureplayerview.sample.step3.Step3Activity;
@@ -138,9 +137,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_step4:
                 startActivity(new Intent(this, Step4Activity.class));
-                return true;
-            case R.id.action_gl:
-                startActivity(new Intent(this, GLActivity.class));
                 return true;
             case ACTION_USE_OPAQUE:
                 PictureInfoUtil.get().setType(PictureInfoUtil.OPAQUE);

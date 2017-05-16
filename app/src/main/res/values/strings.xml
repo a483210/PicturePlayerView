@@ -5,7 +5,6 @@
     <string name="action_step2">步骤2演示</string>
     <string name="action_step3">步骤3演示</string>
     <string name="action_step4">步骤4演示</string>
-    <string name="action_gl">OpenGL演示</string>
     <string name="action_use_opaque">使用不透明素材</string>
     <string name="action_use_transparent">使用透明素材</string>
     <string name="back_text">如果是透明的你应该能看到我</string>
