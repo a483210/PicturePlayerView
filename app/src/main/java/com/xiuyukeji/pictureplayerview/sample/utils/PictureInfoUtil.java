@@ -31,10 +31,10 @@ public class PictureInfoUtil {
     private final String mFileName = "lottielogo";
     private final String mTransparentFileName = "lottielogo_transparent";
 
-    private String[] mPaths;
-    private String[] mTransparentPaths;
+    private final String[] mPaths;
+    private final String[] mTransparentPaths;
 
-    private long mDuration;
+    private final long mDuration;
 
     private int mType = OPAQUE;
 
