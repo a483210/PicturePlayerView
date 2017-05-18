@@ -87,6 +87,7 @@ public class PicturePlayer {
     }
 
     public void start() {
+        reset();
         mReadThread = new ReadThread();
         mScheduler = new Scheduler(mDuration, mFrameCount,
                 new FrameUpdateListener(),
@@ -122,6 +123,20 @@ public class PicturePlayer {
 
     public boolean isPaused() {
         return mScheduler != null && mScheduler.isPaused();
+    }
+
+    private void reset() {
+        mCacheBitmaps.clear();//这里会把删除的数据提交到mReusableBitmaps
+        int count = mReusableBitmaps.size();
+        for (int i = 0; i < count; i++) {
+            ImageUtil.recycleBitmap(mReusableBitmaps.removeFirst());
+        }
+
+        mReadFrame = 0;
+
+        mIsReadCancel = false;
+        mIsPlayCancel = false;
+        mIsCancel = false;
     }
 
     private void error(Exception error) {
@@ -256,17 +271,8 @@ public class PicturePlayer {
         if (!mIsReadCancel || !mIsPlayCancel) {
             return;
         }
-        mCacheBitmaps.clear();//这里会把删除的数据提交到mReusableBitmaps
-        int count = mReusableBitmaps.size();
-        for (int i = 0; i < count; i++) {
-            ImageUtil.recycleBitmap(mReusableBitmaps.removeFirst());
-        }
 
-        mReadFrame = 0;
-
-        mIsReadCancel = false;
-        mIsPlayCancel = false;
-        mIsCancel = false;
+        reset();
 
         mRenderer.onStop();
     }

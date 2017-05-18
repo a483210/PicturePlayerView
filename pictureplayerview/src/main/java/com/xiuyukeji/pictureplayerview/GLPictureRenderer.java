@@ -7,6 +7,7 @@ import android.opengl.GLES30;
 import com.xiuyukeji.pictureplayerview.interfaces.OnErrorListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnStopListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
+import com.xiuyukeji.scheduler.SchedulerUtil;
 
 import java.nio.FloatBuffer;
 
@@ -100,14 +101,18 @@ class GLPictureRenderer implements GLTextureView.Renderer, PicturePlayer.Rendere
         if (mPlaying && mBitmap == null) {
             return false;
         }
+
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
         if (mBitmap == null) {
             return true;
         }
+
         synchronized (mLock) {
             glDraw();
             mLock.notify();//通知完成
         }
+
         return true;
     }
 
@@ -240,14 +245,10 @@ class GLPictureRenderer implements GLTextureView.Renderer, PicturePlayer.Rendere
         calculateScale(bitmap.getWidth(), bitmap.getHeight());
 
         synchronized (mLock) {
-            try {
-                mBitmap = bitmap;
-                mGLTextureView.requestRender();
-                mLock.wait();
-                mBitmap = null;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            mBitmap = bitmap;
+            mGLTextureView.requestRender();
+            SchedulerUtil.lockWait(mLock);
+            mBitmap = null;
         }
     }
 

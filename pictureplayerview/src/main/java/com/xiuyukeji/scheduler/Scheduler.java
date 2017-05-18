@@ -15,7 +15,9 @@ import android.support.annotation.NonNull;
  */
 public final class Scheduler {
 
-    private static final int MSG_FRAME = 0, MSG_MANUAL_QUIT = 1;
+    private static final int MSG_FRAME = 0, MSG_QUIT = 1;
+
+    private final Object mLock = new Object();
 
     private FrameThread mFrameThread;
     private FrameHandler mHandler;
@@ -30,10 +32,11 @@ public final class Scheduler {
 
     private boolean mIsSkipFrame = false;
 
-    private boolean mIsStared = false;
-    private boolean mIsRunning = false;
-    private boolean mIsPaused = false;
-    private boolean mIsCancel = false;
+    private volatile boolean mIsStared = false;
+    private volatile boolean mIsRunning = false;
+    private volatile boolean mIsPaused = false;
+    private volatile boolean mIsCancel = false;
+    private volatile boolean mIsRunPause = false;
 
     private OnFrameUpdateListener mOnFrameUpdateListener;
     private OnFrameListener mOnFrameListener;
@@ -92,9 +95,17 @@ public final class Scheduler {
             return false;
         }
 
-        mIsPaused = false;
-        mCurrentUptimeMs = SystemClock.uptimeMillis();
-        next(mCurrentUptimeMs);
+        synchronized (mLock) {
+            if (mIsRunPause) {//如果暂停被阻塞，则等待
+                SchedulerUtil.lockWait(mLock);
+            }
+            if (!mIsRunning) {//如果在等待过程中发现线程被停止则跳出
+                return false;
+            }
+            mIsPaused = false;
+            mCurrentUptimeMs = SystemClock.uptimeMillis();
+            next(mCurrentUptimeMs);
+        }
 
         return true;
     }
@@ -109,8 +120,13 @@ public final class Scheduler {
             return false;
         }
 
+        mIsRunPause = true;
         mIsPaused = true;
         mHandler.removeMessages(MSG_FRAME);
+        synchronized (mLock) {
+            mIsRunPause = false;
+            mLock.notifyAll();
+        }
 
         return true;
     }
@@ -131,8 +147,8 @@ public final class Scheduler {
 
         mIsCancel = true;
         mHandler.removeMessages(MSG_FRAME);
-        mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_MANUAL_QUIT), SystemClock.uptimeMillis());
-        SchedulerUtil.join(mFrameThread);//等待update执行完成
+        nextQuit();
+        SchedulerUtil.join(mFrameThread);//等待线程执行结束
     }
 
     /**
@@ -186,8 +202,12 @@ public final class Scheduler {
         }
     }
 
+    private void nextQuit() {
+        mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_QUIT), SystemClock.uptimeMillis());
+    }
+
     private void cancel() {
-        if (mOnFrameListener != null) {
+        if (mIsCancel && mOnFrameListener != null) {
             mOnFrameListener.onCancel();
         }
     }
@@ -229,8 +249,11 @@ public final class Scheduler {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_FRAME:
-                    update(mFrameIndex);
-                    if (!mIsPaused && !mIsCancel) {
+                    synchronized (mLock) {
+                        if (!mIsCancel && mIsPaused) {//如果被暂停了，跳出
+                            break;
+                        }
+                        update(mFrameIndex);
                         if (mIsSkipFrame) {
                             double delayTime = SystemClock.uptimeMillis() - mCurrentUptimeMs - mDelayTime;
                             if (delayTime > 0) {
@@ -241,14 +264,16 @@ public final class Scheduler {
                         }
                         mCurrentUptimeMs += mDelayTime;
                         mFrameIndex++;
-                        if (mFrameIndex >= mFrameCount) {
-                            quit();
-                        } else {
-                            next(mCurrentUptimeMs);
+                        if (!mIsCancel) {
+                            if (mFrameIndex >= mFrameCount) {
+                                nextQuit();
+                            } else if (!mIsPaused) {
+                                next(mCurrentUptimeMs);
+                            }
                         }
                     }
                     break;
-                case MSG_MANUAL_QUIT:
+                case MSG_QUIT:
                     cancel();
                     quit();
                     break;

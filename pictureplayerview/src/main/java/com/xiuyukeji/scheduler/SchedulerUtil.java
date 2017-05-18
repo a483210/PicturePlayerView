@@ -26,4 +26,17 @@ public class SchedulerUtil {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 等待锁
+     *
+     * @param lock 锁
+     */
+    public static void lockWait(Object lock) {
+        try {
+            lock.wait();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }
