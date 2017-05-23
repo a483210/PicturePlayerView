@@ -9,7 +9,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 1
-        versionName "0.1.0"
+        versionName "0.1.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -42,7 +42,7 @@ publish {
     userOrg = 'a483210'
     groupId = 'com.xiuyukeji.pictureplayerview'
     artifactId = 'pictureplayerview'
-    publishVersion = '0.1.0'
+    publishVersion = '0.1.1'
     desc = 'picture player'
     website = 'https://github.com/a483210/PicturePlayerView'
 }
