@@ -1,6 +1,6 @@
 # PicturePlayerView
 
-[![Download](https://img.shields.io/badge/Download-0.1.0-blue.svg)](https://bintray.com/a483210/maven/pictureplayerview/_latestVersion)
+[![Download](https://img.shields.io/badge/Download-0.1.1-blue.svg)](https://bintray.com/a483210/maven/pictureplayerview/_latestVersion)
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 PicturePlayerView是基于TextureView的一个图片播放器，适用于播放多张图片组成的动画的场景。
@@ -18,14 +18,14 @@ PicturePlayerView是基于TextureView的一个图片播放器，适用于播放�
 
 Gradle
 
-    compile 'com.xiuyukeji.pictureplayerview:pictureplayerview:0.1.0'
+    compile 'com.xiuyukeji.pictureplayerview:pictureplayerview:0.1.1'
     
 Maven
 
     <dependency>
       <groupId>com.xiuyukeji.pictureplayerview</groupId>
       <artifactId>pictureplayerview</artifactId>
-      <version>0.1.0</version>
+      <version>0.1.1</version>
       <type>pom</type>
     </dependency>
 
