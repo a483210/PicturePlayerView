@@ -72,7 +72,7 @@ Maven
 
 ## 属性说明
 
-属性名 | 参数说明 | 备注
+| 属性名 | 参数说明 | 备注
 | --- | --- | ---
 | picture_loop | boolean | 设置是否循环播放
 | picture_opaque | boolean | 设置背景是否不透明
