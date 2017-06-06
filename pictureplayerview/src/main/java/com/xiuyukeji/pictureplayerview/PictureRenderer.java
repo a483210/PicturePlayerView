@@ -12,14 +12,17 @@ import com.xiuyukeji.pictureplayerview.interfaces.OnErrorListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnStopListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
 
+import static com.xiuyukeji.pictureplayerview.annotations.FitSource.FIT_CENTER;
+import static com.xiuyukeji.pictureplayerview.annotations.FitSource.FIT_CROP;
+import static com.xiuyukeji.pictureplayerview.annotations.FitSource.FIT_HEIGHT;
+import static com.xiuyukeji.pictureplayerview.annotations.FitSource.FIT_WIDTH;
+
 /**
  * 图片播放器渲染类
  *
  * @author Created by jz on 2017/4/10 14:51
  */
 class PictureRenderer implements PicturePlayer.Renderer {
-
-    static final int FIT_WIDTH = 0, FIT_HEIGHT = 1, FIT_CENTER = 2, FIT_CROP = 3;
 
     private static final int WIDTH = 0, HEIGHT = 1;
 

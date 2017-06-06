@@ -8,9 +8,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.xiuyukeji.pictureplayerview.PicturePlayerView;
+import com.xiuyukeji.pictureplayerview.interfaces.OnStopListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
 import com.xiuyukeji.pictureplayerview.sample.step1.Step1Activity;
 import com.xiuyukeji.pictureplayerview.sample.step2.Step2Activity;
@@ -32,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton mStartFab;
     private FloatingActionButton mPauseFab;
     private FloatingActionButton mStopFab;
+    private SeekBar mSeekBar;
     private PicturePlayerView mPicturePlayerView;
     private TextView mFpsView;
 
@@ -51,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         mStartFab = (FloatingActionButton) findViewById(R.id.start);
         mPauseFab = (FloatingActionButton) findViewById(R.id.pause);
         mStopFab = (FloatingActionButton) findViewById(R.id.stop);
+        mSeekBar = (SeekBar) findViewById(R.id.seek);
         mPicturePlayerView = (PicturePlayerView) findViewById(R.id.player);
         mFpsView = (TextView) findViewById(R.id.fps);
 
@@ -60,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private void initView() {
         setSupportActionBar(mToolbar);
         resetDataSource();
+        mSeekBar.setEnabled(false);
     }
 
     private void setListener() {
@@ -70,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
                     mPicturePlayerView.resume();
                 } else {
                     mPicturePlayerView.start();
+                    mSeekBar.setEnabled(true);
                 }
             }
         });
@@ -85,11 +91,54 @@ public class MainActivity extends AppCompatActivity {
                 mPicturePlayerView.stop();
             }
         });
+
         mPicturePlayerView.setOnUpdateListener(new OnUpdateListener() {
             @Override
-            public void onUpdate(int frame) {
+            public void onUpdate(int frameIndex) {
                 mFpsMeasureUtil.measureFps();
                 mFpsView.setText(mFpsMeasureUtil.getFpsText());
+                mSeekBar.setProgress(frameIndex);
+            }
+        });
+        mPicturePlayerView.setOnStopListener(new OnStopListener() {
+            @Override
+            public void onStop() {
+                mSeekBar.setProgress(0);
+                mSeekBar.setEnabled(false);
+            }
+        });
+
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            private boolean isTracking;
+            private boolean isPaused;
+            private int progress;
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (isTracking) {
+                    this.progress = progress;
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                //按下暂停
+                isPaused = mPicturePlayerView.isPaused();
+                mPicturePlayerView.pause();
+                progress = -1;
+                isTracking = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                //释放开始播放
+                isTracking = false;
+                if (progress != -1 && mPicturePlayerView.getFrameIndex() != progress) {
+                    mPicturePlayerView.seek(progress);
+                }
+                if (!isPaused) {
+                    mPicturePlayerView.resume();
+                }
             }
         });
     }
@@ -97,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
     private void resetDataSource() {
         mPicturePlayerView.setDataSource(PictureInfoUtil.get().getPaths(),
                 PictureInfoUtil.get().getDuration());
+        mSeekBar.setMax(PictureInfoUtil.get().getPaths().length - 1);
     }
 
     @Override

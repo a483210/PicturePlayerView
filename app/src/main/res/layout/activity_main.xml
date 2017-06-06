@@ -79,4 +79,13 @@
         app:layout_constraintBottom_toBottomOf="@+id/player"
         app:layout_constraintRight_toLeftOf="@+id/pause"
         app:srcCompat="@drawable/ic_stop_white_24dp" />
+
+    <SeekBar
+        android:id="@+id/seek"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/seek_margin"
+        app:layout_constraintBottom_toBottomOf="@+id/player"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/stop" />
 </android.support.constraint.ConstraintLayout>

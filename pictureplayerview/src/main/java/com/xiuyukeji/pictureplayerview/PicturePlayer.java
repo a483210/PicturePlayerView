@@ -4,8 +4,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.SystemClock;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
+import com.xiuyukeji.pictureplayerview.annotations.PictureSource;
 import com.xiuyukeji.pictureplayerview.utils.CacheList;
 import com.xiuyukeji.pictureplayerview.utils.ImageUtil;
 import com.xiuyukeji.scheduler.OnFrameUpdateListener;
@@ -18,16 +20,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static com.xiuyukeji.pictureplayerview.annotations.PictureSource.FILE;
+
 /**
  * 播放实现
  *
  * @author Created by jz on 2017/3/26 16:55
  */
-public class PicturePlayer {
-
-    public static final int FILE = 0, ASSETS = 1;
-
-    public static final int MAX_CACHE_NUMBER = 12;
+class PicturePlayer {
+    public static final int DEFAULT_MAX_CACHE_NUMBER = 12;
 
     private Context mContext;
 
@@ -35,7 +36,7 @@ public class PicturePlayer {
     private final int mCacheFrameNumber;//最大缓存帧数
     private final int mReusableFrameNumber;//最大复用缓存帧数
 
-    private int mReadFrame;
+    private volatile int mReadFrame;
 
     private CacheList<Bitmap> mCacheBitmaps;
     private CacheList<Bitmap> mReusableBitmaps;
@@ -53,9 +54,10 @@ public class PicturePlayer {
 
     private Renderer mRenderer;
 
-    public PicturePlayer(@NonNull Context context,
-                         int source, int cacheFrameNumber,
-                         @NonNull Renderer renderer) {
+    PicturePlayer(@NonNull Context context,
+                  @PictureSource int source,
+                  @IntRange(from = 2) int cacheFrameNumber,
+                  @NonNull Renderer renderer) {
         this.mContext = context;
         this.mSource = source;
         this.mCacheFrameNumber = cacheFrameNumber;
@@ -80,13 +82,13 @@ public class PicturePlayer {
                 });
     }
 
-    public void setDataSource(String[] paths, long duration, int frameCount) {
+    void setDataSource(String[] paths, long duration, int frameCount) {
         this.mPaths = paths;
         this.mDuration = duration;
         this.mFrameCount = frameCount;
     }
 
-    public void start() {
+    void start() {
         reset();
         mReadThread = new ReadThread();
         mScheduler = new Scheduler(mDuration, mFrameCount,
@@ -96,15 +98,15 @@ public class PicturePlayer {
         mReadThread.start();
     }
 
-    public boolean pause() {
+    boolean pause() {
         return mScheduler.pause();
     }
 
-    public boolean resume() {
+    boolean resume() {
         return mScheduler.resume();
     }
 
-    public void stop() {
+    void stop() {
         mIsCancel = true;
         mReadThread.interrupt();
         if (mScheduler.isStarted()) {
@@ -113,16 +115,51 @@ public class PicturePlayer {
         SchedulerUtil.join(mReadThread);
     }
 
-    public boolean isStarted() {
+    void seek(int frameIndex) {
+        if (!mScheduler.isStarted()//没有真正开始播放
+                || mIsPlayCancel) {//或者已经播放结束都无法seek
+            return;
+        }
+
+        boolean isPaused = isPaused();
+        if (!isPaused) {
+            pause();
+        }
+
+        int pool = frameIndex - mReadFrame + mCacheBitmaps.size();
+        if (pool > 0 && pool < mCacheFrameNumber) {//说明有复用帧
+            for (int i = 0; i < pool; i++) {
+                mCacheBitmaps.removeFirst();
+            }
+        } else {
+            mCacheBitmaps.clear();
+        }
+
+        mReadFrame = frameIndex;
+        mScheduler.seek(frameIndex);
+
+        if (!isPaused) {
+            resume();
+        }
+    }
+
+    boolean isStarted() {
         return mScheduler != null && mScheduler.isStarted();
     }
 
-    public boolean isRunning() {
+    boolean isRunning() {
         return mScheduler != null && mScheduler.isRunning();
     }
 
-    public boolean isPaused() {
+    boolean isPaused() {
         return mScheduler != null && mScheduler.isPaused();
+    }
+
+    int getFrameIndex() {
+        if (mScheduler == null) {
+            return 0;
+        }
+        return (int) mScheduler.getFrameIndex();
     }
 
     private void reset() {
@@ -137,6 +174,8 @@ public class PicturePlayer {
         mIsReadCancel = false;
         mIsPlayCancel = false;
         mIsCancel = false;
+
+        mScheduler = null;
     }
 
     private void error(Exception error) {
@@ -149,8 +188,9 @@ public class PicturePlayer {
         @Override
         public void run() {
             try {
-                while (!mIsCancel && mReadFrame < mFrameCount && !mIsPlayCancel) {
-                    if (mCacheBitmaps.size() >= mCacheFrameNumber) {
+                while (!mIsCancel && !mIsPlayCancel) {
+                    if (mReadFrame >= mFrameCount
+                            || mCacheBitmaps.size() >= mCacheFrameNumber) {
                         SystemClock.sleep(1);
                         continue;
                     }
@@ -164,7 +204,9 @@ public class PicturePlayer {
                     mCacheBitmaps.add(bitmap);
                     mReadFrame++;
 
-                    if (mReadFrame == 1) {
+                    if (mReadFrame == 1//第一帧
+                            && !mIsCancel//未取消
+                            && !mScheduler.isStarted()) {//未开始
                         mScheduler.start();
                     }
                 }
@@ -268,7 +310,8 @@ public class PicturePlayer {
     }
 
     private void threadStop() {
-        if (!mIsReadCancel || !mIsPlayCancel) {
+        if (!mIsReadCancel
+                || !mIsPlayCancel && mScheduler.isStarted()) {
             return;
         }
 
@@ -277,7 +320,7 @@ public class PicturePlayer {
         mRenderer.onStop();
     }
 
-    public interface Renderer {
+    interface Renderer {
         void onDraw(int frameIndex, Bitmap bitmap);
 
         void onStop();

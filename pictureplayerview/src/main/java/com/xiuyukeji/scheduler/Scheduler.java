@@ -28,7 +28,7 @@ public final class Scheduler {
     private double mDelayTime;
     private double mCurrentUptimeMs;
 
-    private long mFrameIndex;
+    private volatile long mFrameIndex;
 
     private boolean mIsSkipFrame = false;
 
@@ -64,6 +64,13 @@ public final class Scheduler {
         if (frameCount > duration) {
             throw new RuntimeException("duration must be greater than frameCount");
         }
+        if (duration < 1) {
+            throw new RuntimeException("duration must be greater than 0");
+        }
+        if (frameCount < 2) {
+            throw new RuntimeException("frameCount must be greater than 2");
+        }
+
         this.mDuration = duration;
         this.mFrameCount = frameCount;
         this.mOnFrameUpdateListener = l;
@@ -152,6 +159,38 @@ public final class Scheduler {
     }
 
     /**
+     * 跳转到某一帧，{@link #isRunning()}返回true调用才有效
+     *
+     * @param frameIndex 跳转帧序列
+     */
+    public void seek(@IntRange(from = 0) long frameIndex) {
+        if (!isRunning() || mIsCancel) {
+            return;
+        }
+        if (frameIndex == mFrameIndex) {
+            return;
+        }
+
+        boolean isPaused = isPaused();
+
+        if (!isPaused) {
+            pause();
+        }
+
+        if (frameIndex >= mFrameCount) {
+            mFrameIndex = mFrameCount - 1;
+        } else if (frameIndex < 0) {
+            mFrameIndex = 0;
+        } else {
+            mFrameIndex = frameIndex;
+        }
+
+        if (!isPaused) {
+            resume();
+        }
+    }
+
+    /**
      * 调用{@link #start()}后返回True
      *
      * @return 是否开始运行
@@ -176,6 +215,15 @@ public final class Scheduler {
      */
     public boolean isPaused() {
         return mIsPaused;
+    }
+
+    /**
+     * 返回当前帧
+     *
+     * @return 当前帧序列
+     */
+    public long getFrameIndex() {
+        return mFrameIndex;
     }
 
     /**

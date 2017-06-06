@@ -9,10 +9,15 @@ import android.util.AttributeSet;
 import android.view.TextureView;
 import android.view.TextureView.SurfaceTextureListener;
 
+import com.xiuyukeji.pictureplayerview.annotations.FitSource;
 import com.xiuyukeji.pictureplayerview.interfaces.OnChangeListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnErrorListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnStopListener;
 import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
+
+import static com.xiuyukeji.pictureplayerview.PicturePlayer.DEFAULT_MAX_CACHE_NUMBER;
+import static com.xiuyukeji.pictureplayerview.annotations.FitSource.FIT_CROP;
+import static com.xiuyukeji.pictureplayerview.annotations.PictureSource.FILE;
 
 /**
  * 图片播放器
@@ -66,9 +71,9 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         mIsLoop = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_loop, false);
         mIsOpaque = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_opaque, true);
         mIsAntiAlias = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_antiAlias, true);
-        mSource = typedArray.getInt(R.styleable.PicturePlayerView_picture_source, PicturePlayer.FILE);
-        mScaleType = typedArray.getInt(R.styleable.PicturePlayerView_picture_scaleType, PictureRenderer.FIT_CROP);
-        mCacheFrameNumber = typedArray.getInt(R.styleable.PicturePlayerView_picture_cacheFrameNumber, PicturePlayer.MAX_CACHE_NUMBER);
+        mSource = typedArray.getInt(R.styleable.PicturePlayerView_picture_source, FILE);
+        mScaleType = typedArray.getInt(R.styleable.PicturePlayerView_picture_scaleType, FIT_CROP);
+        mCacheFrameNumber = typedArray.getInt(R.styleable.PicturePlayerView_picture_cacheFrameNumber, DEFAULT_MAX_CACHE_NUMBER);
         typedArray.recycle();
     }
 
@@ -206,11 +211,25 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     }
 
     /**
+     * 跳转到某一帧
+     *
+     * @param frameIndex 帧序列
+     */
+    public void seek(int frameIndex) {
+        if (mState == STOP) {
+            return;
+        }
+        if (getFrameIndex() != frameIndex) {
+            mPlayer.seek(frameIndex);
+        }
+    }
+
+    /**
      * 只有在停止播放时设置该值有效
      *
      * @param scaleType 值
      */
-    public void setScaleType(int scaleType) {
+    public void setScaleType(@FitSource int scaleType) {
         if (mState != STOP) {
             return;
         }
@@ -252,26 +271,59 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
     }
 
+    /**
+     * 是否暂停
+     */
     public boolean isPaused() {
         return mState == PAUSE;
     }
 
+    /**
+     * 是否在播放中
+     */
     public boolean isPlaying() {
         return mState != STOP;
     }
 
+    /**
+     * 返回当前帧序列
+     */
+    public int getFrameIndex() {
+        return mPlayer.getFrameIndex();
+    }
+
+    /**
+     * 设置更新回调
+     *
+     * @param l 回调
+     */
     public void setOnUpdateListener(OnUpdateListener l) {
         this.mNoticeHandler.setOnUpdateListener(l);
     }
 
+    /**
+     * 设置停止回调
+     *
+     * @param l 回调
+     */
     public void setOnStopListener(OnStopListener l) {
         this.mNoticeHandler.setOnStopListener(l);
     }
 
+    /**
+     * 设置错误回调
+     *
+     * @param l 回调
+     */
     public void setOnErrorListener(OnErrorListener l) {
         this.mNoticeHandler.setOnErrorListener(l);
     }
 
+    /**
+     * 设置TextureView生命周期回调
+     *
+     * @param l 回调
+     */
     public void setOnChangeListener(OnChangeListener l) {
         this.mOnChangeListener = l;
     }
