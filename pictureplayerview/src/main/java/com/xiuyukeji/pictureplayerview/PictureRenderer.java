@@ -74,7 +74,7 @@ class PictureRenderer implements PicturePlayer.Renderer {
 
     @Override
     public void onDraw(int frameIndex, Bitmap bitmap) {
-        if (mOnUpdateListener != null) {
+        if (mOnUpdateListener != null && frameIndex != -1) {
             mOnUpdateListener.onUpdate(frameIndex);
         }
 

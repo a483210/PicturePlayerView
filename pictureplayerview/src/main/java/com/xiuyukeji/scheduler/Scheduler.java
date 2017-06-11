@@ -7,6 +7,7 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 /**
  * 调度器
@@ -15,7 +16,7 @@ import android.support.annotation.NonNull;
  */
 public final class Scheduler {
 
-    private static final int MSG_FRAME = 0, MSG_QUIT = 1;
+    private static final int MSG_QUIT = -1, MSG_FRAME = 0, MSG_SEEK = 1;
 
     private final Object mLock = new Object();
 
@@ -37,9 +38,12 @@ public final class Scheduler {
     private volatile boolean mIsPaused = false;
     private volatile boolean mIsCancel = false;
     private volatile boolean mIsRunPause = false;
+    private volatile boolean mIsWaitResume = false;
+    private volatile boolean mIsSeekToComplete = true;
 
     private OnFrameUpdateListener mOnFrameUpdateListener;
     private OnFrameListener mOnFrameListener;
+    private OnSeekToListener mOnSeekToListener;
 
     /**
      * 调度器只能运行一次
@@ -101,6 +105,10 @@ public final class Scheduler {
         if (!isRunning() || !isPaused() || mIsCancel) {
             return false;
         }
+        if (!isSeekToComplete()) {
+            mIsWaitResume = true;
+            return true;
+        }
 
         synchronized (mLock) {
             if (mIsRunPause) {//如果暂停被阻塞，则等待
@@ -154,6 +162,7 @@ public final class Scheduler {
 
         mIsCancel = true;
         mHandler.removeMessages(MSG_FRAME);
+        mHandler.removeMessages(MSG_SEEK);
         nextQuit();
         SchedulerUtil.join(mFrameThread);//等待线程执行结束
     }
@@ -163,18 +172,20 @@ public final class Scheduler {
      *
      * @param frameIndex 跳转帧序列
      */
-    public void seek(@IntRange(from = 0) long frameIndex) {
+    public void seekTo(@IntRange(from = 0) long frameIndex, @NonNull OnSeekToListener l) {
         if (!isRunning() || mIsCancel) {
             return;
         }
-        if (frameIndex == mFrameIndex) {
+        if (frameIndex == mFrameIndex || !isSeekToComplete()) {
             return;
         }
 
-        boolean isPaused = isPaused();
+        mIsSeekToComplete = false;
+        mOnSeekToListener = l;
 
-        if (!isPaused) {
+        if (!isPaused()) {
             pause();
+            mIsWaitResume = true;
         }
 
         if (frameIndex >= mFrameCount) {
@@ -185,9 +196,7 @@ public final class Scheduler {
             mFrameIndex = frameIndex;
         }
 
-        if (!isPaused) {
-            resume();
-        }
+        mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_SEEK), SystemClock.uptimeMillis());
     }
 
     /**
@@ -215,6 +224,15 @@ public final class Scheduler {
      */
     public boolean isPaused() {
         return mIsPaused;
+    }
+
+    /**
+     * 调用{@link #setSkipFrame(boolean)}后完成返回True
+     *
+     * @return seekTo是否完成
+     */
+    public boolean isSeekToComplete() {
+        return mIsSeekToComplete;
     }
 
     /**
@@ -318,6 +336,25 @@ public final class Scheduler {
                             } else if (!mIsPaused) {
                                 next(mCurrentUptimeMs);
                             }
+                        }
+                    }
+                    break;
+                case MSG_SEEK:
+                    mOnSeekToListener.onSeekTo(mFrameIndex);
+
+                    if (!mIsWaitResume) {
+                        mOnSeekToListener.onSeekUpdate(mFrameIndex);
+                    }
+
+                    mIsSeekToComplete = true;
+
+                    boolean isResume = mOnSeekToListener.onSeekToComplete();
+
+                    if (isResume) {
+                        mOnSeekToListener = null;
+                        if (mIsWaitResume) {
+                            resume();
+                            mIsWaitResume = false;
                         }
                     }
                     break;

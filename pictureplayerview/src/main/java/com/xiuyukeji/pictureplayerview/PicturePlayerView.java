@@ -215,12 +215,12 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
      *
      * @param frameIndex 帧序列
      */
-    public void seek(int frameIndex) {
+    public void seekTo(int frameIndex) {
         if (mState == STOP) {
             return;
         }
         if (getFrameIndex() != frameIndex) {
-            mPlayer.seek(frameIndex);
+            mPlayer.seekTo(frameIndex);
         }
     }
 

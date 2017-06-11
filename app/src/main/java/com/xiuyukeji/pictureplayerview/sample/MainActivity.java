@@ -111,12 +111,11 @@ public class MainActivity extends AppCompatActivity {
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             private boolean isTracking;
             private boolean isPaused;
-            private int progress;
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (isTracking) {
-                    this.progress = progress;
+                    mPicturePlayerView.seekTo(progress);
                 }
             }
 
@@ -125,7 +124,6 @@ public class MainActivity extends AppCompatActivity {
                 //按下暂停
                 isPaused = mPicturePlayerView.isPaused();
                 mPicturePlayerView.pause();
-                progress = -1;
                 isTracking = true;
             }
 
@@ -133,9 +131,6 @@ public class MainActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {
                 //释放开始播放
                 isTracking = false;
-                if (progress != -1 && mPicturePlayerView.getFrameIndex() != progress) {
-                    mPicturePlayerView.seek(progress);
-                }
                 if (!isPaused) {
                     mPicturePlayerView.resume();
                 }

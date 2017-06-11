@@ -11,6 +11,7 @@ import com.xiuyukeji.pictureplayerview.annotations.PictureSource;
 import com.xiuyukeji.pictureplayerview.utils.CacheList;
 import com.xiuyukeji.pictureplayerview.utils.ImageUtil;
 import com.xiuyukeji.scheduler.OnFrameUpdateListener;
+import com.xiuyukeji.scheduler.OnSeekToListener;
 import com.xiuyukeji.scheduler.OnSimpleFrameListener;
 import com.xiuyukeji.scheduler.Scheduler;
 import com.xiuyukeji.scheduler.SchedulerUtil;
@@ -37,9 +38,12 @@ class PicturePlayer {
     private final int mReusableFrameNumber;//最大复用缓存帧数
 
     private volatile int mReadFrame;
+    private volatile int mSeekToIndex;
 
     private CacheList<Bitmap> mCacheBitmaps;
     private CacheList<Bitmap> mReusableBitmaps;
+
+    private final Object mLock = new Object();
 
     private volatile boolean mIsReadCancel;
     private volatile boolean mIsPlayCancel;
@@ -61,7 +65,7 @@ class PicturePlayer {
         this.mContext = context;
         this.mSource = source;
         this.mCacheFrameNumber = cacheFrameNumber;
-        this.mReusableFrameNumber = mCacheFrameNumber / 2;
+        this.mReusableFrameNumber = mCacheFrameNumber;
         this.mRenderer = renderer;
 
         mCacheBitmaps = new CacheList<>(new Bitmap[mCacheFrameNumber],
@@ -115,31 +119,29 @@ class PicturePlayer {
         SchedulerUtil.join(mReadThread);
     }
 
-    void seek(int frameIndex) {
+    void seekTo(int frameIndex) {
         if (!mScheduler.isStarted()//没有真正开始播放
-                || mIsPlayCancel) {//或者已经播放结束都无法seek
+                || mIsPlayCancel) {//或者已经播放结束都无法seekTo
+            return;
+        }
+        if (!mScheduler.isSeekToComplete()) {//如果还没有seekTo完成则记录最后一个
+            mSeekToIndex = frameIndex;
             return;
         }
 
-        boolean isPaused = isPaused();
-        if (!isPaused) {
-            pause();
-        }
+        synchronized (mLock) {
+            mReadFrame = frameIndex;
 
-        int pool = frameIndex - mReadFrame + mCacheBitmaps.size();
-        if (pool > 0 && pool < mCacheFrameNumber) {//说明有复用帧
-            for (int i = 0; i < pool; i++) {
-                mCacheBitmaps.removeFirst();
+            int pool = frameIndex - mReadFrame + mCacheBitmaps.size();
+            if (pool > 0 && pool < mCacheFrameNumber) {//说明有复用帧
+                for (int i = 0; i < pool; i++) {
+                    mCacheBitmaps.removeFirst();
+                }
+            } else {
+                mCacheBitmaps.clear();
             }
-        } else {
-            mCacheBitmaps.clear();
-        }
 
-        mReadFrame = frameIndex;
-        mScheduler.seek(frameIndex);
-
-        if (!isPaused) {
-            resume();
+            mScheduler.seekTo(frameIndex, mSeekListener);
         }
     }
 
@@ -174,8 +176,6 @@ class PicturePlayer {
         mIsReadCancel = false;
         mIsPlayCancel = false;
         mIsCancel = false;
-
-        mScheduler = null;
     }
 
     private void error(Exception error) {
@@ -184,25 +184,60 @@ class PicturePlayer {
         mRenderer.onError("读取图片失败");
     }
 
+    private final OnSeekToListener mSeekListener = new OnSeekToListener() {
+        @Override
+        public void onSeekTo(long frameIndex) {
+            synchronized (mLock) {
+                if (mCacheBitmaps.isEmpty()) {
+                    SchedulerUtil.lockWait(mLock);
+                }
+            }
+        }
+
+        @Override
+        public void onSeekUpdate(long frameIndex) {
+            update((int) frameIndex, -1);
+        }
+
+        @Override
+        public boolean onSeekToComplete() {
+            if (mSeekToIndex != -1) {
+                seekTo(mSeekToIndex);
+                mSeekToIndex = -1;
+                return false;
+            }
+            return true;
+        }
+    };
+
     private class ReadThread extends Thread {
         @Override
         public void run() {
             try {
                 while (!mIsCancel && !mIsPlayCancel) {
-                    if (mReadFrame >= mFrameCount
-                            || mCacheBitmaps.size() >= mCacheFrameNumber) {
+                    if (mReadFrame >= mFrameCount) {
+                        SystemClock.sleep(1);
+                        continue;
+                    }
+                    int size = mCacheBitmaps.size();
+                    if (size >= mCacheFrameNumber
+                            || (mCacheBitmaps.size() >= 1 && isPaused())) {//暂停的情况下只读取一帧
                         SystemClock.sleep(1);
                         continue;
                     }
 
-                    Bitmap bitmap = readBitmap(mPaths[mReadFrame]);
+                    synchronized (mLock) {
+                        Bitmap bitmap = readBitmap(mPaths[mReadFrame]);
 
-                    if (bitmap == null || bitmap.isRecycled()) {
-                        throw new NullPointerException("读取的图片有错误");
+                        if (bitmap == null || bitmap.isRecycled()) {
+                            throw new NullPointerException("读取的图片有错误");
+                        }
+
+                        mCacheBitmaps.add(bitmap);
+                        mReadFrame++;
+
+                        mLock.notifyAll();
                     }
-
-                    mCacheBitmaps.add(bitmap);
-                    mReadFrame++;
 
                     if (mReadFrame == 1//第一帧
                             && !mIsCancel//未取消
@@ -265,40 +300,44 @@ class PicturePlayer {
 
     private class FrameUpdateListener implements OnFrameUpdateListener {
         @Override
-        public void onFrameUpdate(long index) {
-            int frameIndex = (int) index;
+        public void onFrameUpdate(long frameIndex) {
+            int index = (int) frameIndex;
 
-            Bitmap bitmap = getBitmap(frameIndex);
+            update(index, index);
+        }
+    }
 
-            mRenderer.onDraw(frameIndex, bitmap);
+    private void update(int readFrameIndex, int frameIndex) {
+        Bitmap bitmap = getBitmap(readFrameIndex);
 
-            if (bitmap != null) {
-                mCacheBitmaps.removeFirst();//在这一帧画完后再放进复用池，防止画面撕裂
-            }
+        mRenderer.onDraw(frameIndex, bitmap);
+
+        if (bitmap != null) {
+            mCacheBitmaps.removeFirst();//在这一帧画完后再放进复用池，防止画面撕裂
+        }
+    }
+
+    private Bitmap getBitmap(int frameIndex) {
+        if (mCacheBitmaps.isEmpty()) {
+            return null;
         }
 
-        private Bitmap getBitmap(int frameIndex) {
-            if (mCacheBitmaps.isEmpty()) {
-                return null;
-            }
+        Bitmap bitmap = null;
 
-            Bitmap bitmap = null;
-
-            int firstIndex = mReadFrame - mCacheBitmaps.size();
-            if (frameIndex == firstIndex) {
+        int firstIndex = mReadFrame - mCacheBitmaps.size();
+        if (frameIndex == firstIndex) {
+            bitmap = mCacheBitmaps.getFirst();
+        } else if (frameIndex > firstIndex) {
+            if (frameIndex >= mReadFrame) {
+                mCacheBitmaps.clear();
+                mReadFrame = frameIndex + 1;
+            } else {
+                mCacheBitmaps.removeCount(frameIndex - firstIndex);
                 bitmap = mCacheBitmaps.getFirst();
-            } else if (frameIndex > firstIndex) {
-                if (frameIndex >= mReadFrame) {
-                    mCacheBitmaps.clear();
-                    mReadFrame = frameIndex + 1;
-                } else {
-                    mCacheBitmaps.removeCount(frameIndex - firstIndex);
-                    bitmap = mCacheBitmaps.getFirst();
-                }
             }
-
-            return bitmap;
         }
+
+        return bitmap;
     }
 
     private class FrameListener extends OnSimpleFrameListener {
