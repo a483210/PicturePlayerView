@@ -33,6 +33,8 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     private boolean mIsLoop;//是否循环播放
     private boolean mIsOpaque;//背景是否透明
     private boolean mIsAntiAlias;//是否抗锯齿
+    private boolean mIsFilterBitmap;//是否位图过滤
+    private boolean mIsDither;//是否防抖动
     private int mSource;//设置来源
     private int mScaleType;//设置缩放类型
     private int mCacheFrameNumber;//缓存帧数
@@ -71,6 +73,8 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         mIsLoop = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_loop, false);
         mIsOpaque = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_opaque, true);
         mIsAntiAlias = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_antiAlias, true);
+        mIsFilterBitmap = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_filterBitmap, false);
+        mIsDither = typedArray.getBoolean(R.styleable.PicturePlayerView_picture_dither, false);
         mSource = typedArray.getInt(R.styleable.PicturePlayerView_picture_source, FILE);
         mScaleType = typedArray.getInt(R.styleable.PicturePlayerView_picture_scaleType, FIT_CROP);
         mCacheFrameNumber = typedArray.getInt(R.styleable.PicturePlayerView_picture_cacheFrameNumber, DEFAULT_MAX_CACHE_NUMBER);
@@ -80,7 +84,7 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
     private void findView() {
         mNoticeHandler = new NoticeHandler();
 
-        mRenderer = new PictureRenderer(mIsAntiAlias, mScaleType, this);
+        mRenderer = new PictureRenderer(mIsAntiAlias, mIsFilterBitmap, mIsDither, mScaleType, this);
         mPlayer = new PicturePlayer(getContext(), mSource, mCacheFrameNumber, mRenderer);
     }
 
@@ -328,4 +332,14 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
         this.mOnChangeListener = l;
     }
 
+    /**
+     * 解除所有回调，同时停止播放，该方法可以不调用
+     */
+    public void release() {
+        setOnUpdateListener(null);
+        setOnStopListener(null);
+        setOnErrorListener(null);
+        setOnChangeListener(null);
+        stop();
+    }
 }

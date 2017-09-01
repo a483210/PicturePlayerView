@@ -38,12 +38,12 @@ class PicturePlayer {
     private final int mReusableFrameNumber;//最大复用缓存帧数
 
     private volatile int mReadFrame;
-    private volatile int mSeekToIndex;
+    private volatile int mSeekToIndex = -1;
 
     private CacheList<Bitmap> mCacheBitmaps;
     private CacheList<Bitmap> mReusableBitmaps;
 
-    private final Object mLock = new Object();
+    private final Object mSeekToLock = new Object();
 
     private volatile boolean mIsReadCancel;
     private volatile boolean mIsPlayCancel;
@@ -129,7 +129,7 @@ class PicturePlayer {
             return;
         }
 
-        synchronized (mLock) {
+        synchronized (mSeekToLock) {
             mReadFrame = frameIndex;
 
             int pool = frameIndex - mReadFrame + mCacheBitmaps.size();
@@ -187,9 +187,9 @@ class PicturePlayer {
     private final OnSeekToListener mSeekListener = new OnSeekToListener() {
         @Override
         public void onSeekTo(long frameIndex) {
-            synchronized (mLock) {
+            synchronized (mSeekToLock) {
                 if (mCacheBitmaps.isEmpty()) {
-                    SchedulerUtil.lockWait(mLock);
+                    SchedulerUtil.lockWait(mSeekToLock);
                 }
             }
         }
@@ -220,13 +220,12 @@ class PicturePlayer {
                         continue;
                     }
                     int size = mCacheBitmaps.size();
-                    if (size >= mCacheFrameNumber
-                            || (mCacheBitmaps.size() >= 1 && isPaused())) {//暂停的情况下只读取一帧
+                    if (size >= mCacheFrameNumber || (size >= 1 && isPaused())) {//暂停的情况下只读取一帧
                         SystemClock.sleep(1);
                         continue;
                     }
 
-                    synchronized (mLock) {
+                    synchronized (mSeekToLock) {
                         Bitmap bitmap = readBitmap(mPaths[mReadFrame]);
 
                         if (bitmap == null || bitmap.isRecycled()) {
@@ -236,7 +235,7 @@ class PicturePlayer {
                         mCacheBitmaps.add(bitmap);
                         mReadFrame++;
 
-                        mLock.notifyAll();
+                        mSeekToLock.notifyAll();
                     }
 
                     if (mReadFrame == 1//第一帧

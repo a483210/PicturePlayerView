@@ -12,7 +12,7 @@ import com.xiuyukeji.pictureplayerview.interfaces.OnUpdateListener;
  *
  * @author Created by jz on 2017/3/26 16:52
  */
-public class NoticeHandler extends Handler {
+class NoticeHandler extends Handler {
 
     private static final int UPDATE = 0, STOP = 1, ERROR = -1;
 
@@ -23,56 +23,73 @@ public class NoticeHandler extends Handler {
     @Override
     public void handleMessage(Message msg) {
         super.handleMessage(msg);
+
+        HandlerObject object = (HandlerObject) msg.obj;
         switch (msg.what) {
             case UPDATE:
-                if (mOnUpdateListener != null) {
-                    mOnUpdateListener.onUpdate(msg.arg1);
-                }
+                ((OnUpdateListener) object.listener).onUpdate((int) object.value);
                 break;
             case STOP:
-                if (mOnStopListener != null) {
-                    mOnStopListener.onStop();
-                }
+                ((OnStopListener) object.listener).onStop();
                 break;
             case ERROR:
-                if (mOnErrorListener != null) {
-                    mOnErrorListener.onError(String.valueOf(msg.obj));
-                }
+                ((OnErrorListener) object.listener).onError((String) object.value);
                 break;
             default:
                 break;
         }
     }
 
-    public void noticeUpdate(int frame) {
+    void noticeUpdate(int frame) {
+        if (mOnUpdateListener == null) {
+            return;
+        }
         Message message = Message.obtain();
         message.what = UPDATE;
-        message.arg1 = frame;
+        message.obj = new HandlerObject(mOnUpdateListener, frame);
         sendMessage(message);
     }
 
-    public void setOnUpdateListener(OnUpdateListener l) {
+    void setOnUpdateListener(OnUpdateListener l) {
         this.mOnUpdateListener = l;
     }
 
-    public void noticeStop() {
-        sendEmptyMessage(STOP);
-    }
-
-    public void setOnStopListener(OnStopListener l) {
-        this.mOnStopListener = l;
-    }
-
-    public void noticeError(String msg) {
+    void noticeStop() {
+        if (mOnStopListener == null) {
+            return;
+        }
         Message message = Message.obtain();
-        message.what = ERROR;
-        message.obj = msg;
+        message.what = STOP;
+        message.obj = new HandlerObject(mOnStopListener, null);
         sendMessage(message);
     }
 
-    public void setOnErrorListener(OnErrorListener l) {
+    void setOnStopListener(OnStopListener l) {
+        this.mOnStopListener = l;
+    }
+
+    void noticeError(String msg) {
+        if (mOnErrorListener == null) {
+            return;
+        }
+        Message message = Message.obtain();
+        message.what = ERROR;
+        message.obj = new HandlerObject(mOnErrorListener, msg);
+        sendMessage(message);
+    }
+
+    void setOnErrorListener(OnErrorListener l) {
         this.mOnErrorListener = l;
     }
 
+    private static class HandlerObject {
+        Object listener;
+        Object value;
+
+        HandlerObject(Object listener, Object value) {
+            this.listener = listener;
+            this.value = value;
+        }
+    }
 }
 

@@ -4,6 +4,8 @@
         <attr name="picture_loop" format="boolean" />
         <attr name="picture_opaque" format="boolean" />
         <attr name="picture_antiAlias" format="boolean" />
+        <attr name="picture_filterBitmap" format="boolean" />
+        <attr name="picture_dither" format="boolean" />
         <attr name="picture_source">
             <enum name="file" value="0" />
             <enum name="assets" value="1" />

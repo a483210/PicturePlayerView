@@ -2,12 +2,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.novoda.bintray-release'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion "25.0.3"
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 1
         versionName "0.1.1"
 
@@ -42,7 +42,7 @@ publish {
     userOrg = 'a483210'
     groupId = 'com.xiuyukeji.pictureplayerview'
     artifactId = 'pictureplayerview'
-    publishVersion = '0.1.1'
+    publishVersion = '0.1.2'
     desc = 'picture player'
     website = 'https://github.com/a483210/PicturePlayerView'
 }

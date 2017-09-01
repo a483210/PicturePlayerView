@@ -43,15 +43,21 @@ class PictureRenderer implements PicturePlayer.Renderer {
     private OnStopListener mOnStopListener;
     private OnErrorListener mOnErrorListener;
 
-    PictureRenderer(boolean isAntiAlias, int scaleType, TextureView textureView) {
+    PictureRenderer(boolean isAntiAlias, boolean isFilterBitmap, boolean isDither, int scaleType, TextureView textureView) {
         this.mScaleType = scaleType;
         this.mTextureView = textureView;
 
         mPaint = new Paint();
         if (isAntiAlias) {
             mPaint.setAntiAlias(true);
+        }
+        if (isFilterBitmap) {
+            mPaint.setFilterBitmap(true);
+        }
+        if (isDither) {
             mPaint.setDither(true);
         }
+
         mSrcRect = new Rect();
         mDstRect = new Rect();
     }
