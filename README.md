@@ -1,6 +1,6 @@
 # PicturePlayerView
 
-[![Download](https://img.shields.io/badge/Download-0.1.1-blue.svg)](https://bintray.com/a483210/maven/pictureplayerview/_latestVersion)
+[![Download](https://img.shields.io/badge/Download-0.1.2-blue.svg)](https://bintray.com/a483210/maven/pictureplayerview/_latestVersion)
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 PicturePlayerView是基于TextureView的一个图片播放器，适用于播放多张图片组成的动画的场景。
@@ -18,14 +18,14 @@ PicturePlayerView是基于TextureView的一个图片播放器，适用于播放�
 
 Gradle
 
-    compile 'com.xiuyukeji.pictureplayerview:pictureplayerview:0.1.1'
+    compile 'com.xiuyukeji.pictureplayerview:pictureplayerview:0.1.2'
     
 Maven
 
     <dependency>
       <groupId>com.xiuyukeji.pictureplayerview</groupId>
       <artifactId>pictureplayerview</artifactId>
-      <version>0.1.1</version>
+      <version>0.1.2</version>
       <type>pom</type>
     </dependency>
 
@@ -58,11 +58,12 @@ Maven
 | resume(void) | (无参数) | 恢复播放
 | pause(void) | (无参数) | 暂停播放
 | stop(void) | (无参数) | 停止播放
+| release(void) | (无参数) | 解除回调同时停止播放
 | setScaleType(int) | ([FIT_WIDTH, FIT_HEIGHT, FIT_CENTER, FIT_CROP]) | 设置缩放类型
 | setLoop(boolean) | (是否循环) | 设置是否循环播放
 | setEnabled(boolean) | (是否有效) | 设置是否能开始播放
 | setOnUpdateListener(OnUpdateListener) | (更新接口) | 每播放一帧都将回调
-| | setOnStopListener(OnStopListener) | (停止接口) | 停止播放时回调
+| setOnStopListener(OnStopListener) | (停止接口) | 停止播放时回调
 | setOnErrorListener(OnErrorListener) | (错误接口) | 播放出错时回调
 | setOnChangeListener(OnChangeListener) | (改变接口) | TextureView的生命周期，创建和销毁
 | boolan isLoop() | return 是否循环 | 是否循环播放
@@ -77,6 +78,8 @@ Maven
 | picture_loop | boolean | 设置是否循环播放
 | picture_opaque | boolean | 设置背景是否不透明
 | picture_antiAlias | boolean | 设置是否开启抗锯齿
+| picture_filterBitmap | boolean | 设置是否开启滤波处理
+| picture_dither | boolean | 设置是否开启防抖动
 | picture_source | file, assets | 设置图片来源，目前一个View只支持一种来源
 | picture_scaleType | fitWidth, fitHeight, fitCenter, fitCrop | 设置缩放类型
 | picture_cacheFrameNumber | integer | 设置缓存数量，默认12帧
