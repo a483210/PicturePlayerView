@@ -84,4 +84,11 @@ Maven
 | picture_scaleType | fitWidth, fitHeight, fitCenter, fitCrop | 设置缩放类型
 | picture_cacheFrameNumber | integer | 设置缓存数量，默认12帧
 
+## 混淆
+
+    -dontwarn com.xiuyukeji.pictureplayerview.**
+    -keep class com.xiuyukeji.pictureplayerview.** { *; }
+    -dontwarn com.xiuyukeji.scheduler.**
+    -keep class com.xiuyukeji.scheduler.** { *; }
+
 **如果它有解决你的问题的话，请star下，谢谢。**
