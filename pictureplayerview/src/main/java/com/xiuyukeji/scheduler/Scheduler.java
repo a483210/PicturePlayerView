@@ -7,7 +7,6 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 /**
  * 调度器
@@ -224,6 +223,15 @@ public final class Scheduler {
      */
     public boolean isPaused() {
         return mIsPaused;
+    }
+
+    /**
+     * 调用{@link #stop()}后返回True
+     *
+     * @return 是否被取消
+     */
+    public boolean isCanceled() {
+        return mIsCancel;
     }
 
     /**

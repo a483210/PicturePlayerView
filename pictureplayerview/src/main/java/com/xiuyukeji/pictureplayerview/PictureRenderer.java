@@ -84,7 +84,7 @@ class PictureRenderer implements PicturePlayer.Renderer {
             mOnUpdateListener.onUpdate(frameIndex);
         }
 
-        if (bitmap == null) {
+        if (bitmap == null || bitmap.isRecycled()) {
             return;
         }
 

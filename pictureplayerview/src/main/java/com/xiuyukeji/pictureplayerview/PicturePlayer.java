@@ -113,7 +113,7 @@ class PicturePlayer {
     void stop() {
         mIsCancel = true;
         mReadThread.interrupt();
-        if (mScheduler.isStarted()) {
+        if (mScheduler.isStarted() && !mScheduler.isCanceled()) {
             mScheduler.stop();
         }
         SchedulerUtil.join(mReadThread);
