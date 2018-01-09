@@ -1,6 +1,6 @@
 # PicturePlayerView
 
-[![Download](https://img.shields.io/badge/Download-0.1.3-blue.svg)](https://bintray.com/a483210/maven/pictureplayerview/_latestVersion)
+[![Download](https://img.shields.io/badge/Download-0.1.4-blue.svg)](https://bintray.com/a483210/maven/pictureplayerview/_latestVersion)
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 PicturePlayerView是基于TextureView的一个图片播放器，适用于播放多张图片组成的动画的场景。
