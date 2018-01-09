@@ -18,7 +18,6 @@ import com.xiuyukeji.scheduler.SchedulerUtil;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 import static com.xiuyukeji.pictureplayerview.annotations.PictureSource.FILE;
@@ -178,7 +177,7 @@ class PicturePlayer {
         mIsCancel = false;
     }
 
-    private void error(Exception error) {
+    private void error(Throwable error) {
         error.printStackTrace();
         PicturePlayer.this.stop();
         mRenderer.onError("读取图片失败");
@@ -244,7 +243,7 @@ class PicturePlayer {
                         mScheduler.start();
                     }
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 error(e);
             }
             mIsReadCancel = true;
@@ -252,7 +251,7 @@ class PicturePlayer {
         }
     }
 
-    private Bitmap readBitmap(String path) throws IOException {
+    private Bitmap readBitmap(String path) throws Throwable {
         InputStream is;
         if (mSource == FILE) {
             is = new BufferedInputStream(new FileInputStream(path));
@@ -266,7 +265,7 @@ class PicturePlayer {
     }
 
     //实现复用
-    private BitmapFactory.Options getReusableOptions(InputStream is) throws IOException {
+    private BitmapFactory.Options getReusableOptions(InputStream is) throws Throwable {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         options.inSampleSize = 1;

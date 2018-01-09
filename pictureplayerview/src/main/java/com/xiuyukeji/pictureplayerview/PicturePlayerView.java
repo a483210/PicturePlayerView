@@ -259,7 +259,6 @@ public class PicturePlayerView extends TextureView implements SurfaceTextureList
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-
     }
 
     @Override
